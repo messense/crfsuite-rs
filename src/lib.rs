@@ -1,7 +1,7 @@
 extern crate libc;
 extern crate crfsuite_sys;
 
-use std::{mem, ptr};
+use std::{mem, ptr, fmt, error};
 use crfsuite_sys::*;
 
 #[derive(Debug, Clone)]
@@ -13,6 +13,50 @@ pub enum CrfSuiteError {
     OutOfMemory,
     Overflow,
     Unknown
+}
+
+impl error::Error for CrfSuiteError {
+    fn description(&self) -> &str {
+        match *self {
+            CrfSuiteError::Incompatible => "Incompatible data",
+            CrfSuiteError::InternalLogic => "Internal error",
+            CrfSuiteError::NotImplemented => "Not implemented",
+            CrfSuiteError::NotSupported => "Unsupported operation",
+            CrfSuiteError::OutOfMemory => "Insufficient memory",
+            CrfSuiteError::Overflow => "Overflow",
+            CrfSuiteError::Unknown => "Unknown error occurred",
+        }
+    }
+}
+
+impl fmt::Display for CrfSuiteError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let desc = match *self {
+            CrfSuiteError::Incompatible => "Incompatible data",
+            CrfSuiteError::InternalLogic => "Internal error",
+            CrfSuiteError::NotImplemented => "Not implemented",
+            CrfSuiteError::NotSupported => "Unsupported operation",
+            CrfSuiteError::OutOfMemory => "Insufficient memory",
+            CrfSuiteError::Overflow => "Overflow",
+            CrfSuiteError::Unknown => "Unknown error occurred",
+        };
+        write!(f, "{}", desc)
+    }
+}
+
+impl From<libc::c_int> for CrfSuiteError {
+    fn from(code: libc::c_int) -> Self {
+        match code {
+            CRFSUITEERR_INCOMPATIBLE => CrfSuiteError::Incompatible,
+            CRFSUITEERR_INTERNAL_LOGIC => CrfSuiteError::InternalLogic,
+            CRFSUITEERR_NOTIMPLEMENTED => CrfSuiteError::NotImplemented,
+            CRFSUITEERR_NOTSUPPORTED => CrfSuiteError::NotSupported,
+            CRFSUITEERR_OUTOFMEMORY => CrfSuiteError::OutOfMemory,
+            CRFSUITEERR_OVERFLOW => CrfSuiteError::Overflow,
+            CRFSUITEERR_UNKNOWN => CrfSuiteError::Unknown,
+            _ => unreachable!(),
+        }
+    }
 }
 
 pub type Result<T> = ::std::result::Result<T, CrfSuiteError>;
