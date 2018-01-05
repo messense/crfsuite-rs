@@ -1,0 +1,14 @@
+[package]
+name = "crfsuite-sys"
+version = "0.1.0"
+authors = ["Messense Lv <messense@icloud.com>"]
+build = "build.rs"
+links = "crfsuite"
+
+[dependencies]
+libc = "0.2.35"
+
+[build-dependencies]
+bindgen = "0.32.1"
+cc = "1.0.3"
+cmake = "0.1.29"

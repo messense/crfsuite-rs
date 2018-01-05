@@ -1,0 +1,8 @@
+[package]
+name = "crfsuite"
+version = "0.1.0"
+authors = ["Messense Lv <messense@icloud.com>"]
+
+[dependencies]
+libc = "0.2.35"
+crfsuite-sys = { path = "crfsuite-sys", version = "0.1.0" }
