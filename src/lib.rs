@@ -285,21 +285,24 @@ impl Drop for Trainer {
     }
 }
 
+/// The model
+#[derive(Debug)]
+pub struct Model(*mut crfsuite_model_t);
+
 /// The tagger
 /// provides the functionality for predicting label sequences for input sequences using a model.
 #[derive(Debug)]
-pub struct Tagger {
-    model: *mut crfsuite_model_t,
-    tagger: *mut crfsuite_tagger_t,
-}
+pub struct Tagger(*mut crfsuite_tagger_t);
 
-impl Tagger {
-    /// Construct a tagger
+impl Model {
     pub fn new() -> Self {
-        Self {
-            model: ptr::null_mut(),
-            tagger: ptr::null_mut(),
-        }
+        Model(ptr::null_mut())
+    }
+
+    pub fn from_file(name: &str) -> Result<Self> {
+        let mut model = Model::new();
+        model.open(name)?;
+        Ok(model)
     }
 
     /// Open a model file
@@ -308,11 +311,8 @@ impl Tagger {
         self.close();
         let name_cstr = CString::new(name).unwrap();
         unsafe {
-            if crfsuite_create_instance_from_file(name_cstr.as_ptr(), self.model as *mut *mut _) != 0 {
+            if crfsuite_create_instance_from_file(name_cstr.as_ptr(), self.0 as *mut *mut _) != 0 {
                 return Err(CrfError::CreateInstanceError("Failed to a model instance for tagger.".to_string()));
-            }
-            if (*self.model).get_tagger.map(|f| f(self.model, self.tagger as *mut *mut _)).unwrap() != 0 {
-                return Err(CrfError::CreateInstanceError("Failed to obtain the tagger interface.".to_string()));
             }
         }
         Ok(())
@@ -321,29 +321,56 @@ impl Tagger {
     /// Close the model
     pub fn close(&mut self) {
         unsafe {
-            if !self.tagger.is_null() {
-                (*self.tagger).release.map(|f| f(self.tagger));
-                self.tagger = ptr::null_mut();
-            }
-            if !self.model.is_null() {
-                (*self.model).release.map(|f| f(self.model));
-                self.model = ptr::null_mut();
+            if !self.0.is_null() {
+                (*self.0).release.map(|f| f(self.0));
+                self.0 = ptr::null_mut();
             }
         }
     }
 
+    unsafe fn tagger(&self) -> Result<Tagger> {
+        let mut tagger = ptr::null_mut();
+        let ret = (*self.0).get_tagger.map(|f| f(self.0, tagger as *mut *mut _)).unwrap();
+        if ret != 0 {
+            return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+        }
+        Ok(Tagger(tagger))
+    }
+}
+
+impl Drop for Model {
+    fn drop(&mut self) {
+        self.close();
+    }
+}
+
+unsafe impl Send for Model {}
+unsafe impl Sync for Model {}
+
+impl Drop for Tagger {
+    fn drop(&mut self) {
+        let tagger = self.0;
+        if tagger.is_null() {
+            return;
+        }
+        unsafe { (*tagger).release.map(|f| f(tagger)); }
+    }
+}
+
+impl Tagger {
     /// Obtain the list of labels
     pub fn labels(&self) -> Vec<String> {
         unimplemented!()
     }
 
     /// Predict the label sequence for the item sequence.
-    pub fn tag(&self, xseq: &ItemSequence) -> Vec<String> {
-        unimplemented!()
+    pub fn tag(&mut self, xseq: &ItemSequence) -> Vec<String> {
+        self.set(xseq);
+        self.viterbi()
     }
 
     /// Set an item sequence.
-    pub fn set(&mut self, xseq: &ItemSequence) {
+    fn set(&mut self, xseq: &ItemSequence) {
     }
 
     /// Find the Viterbi label sequence for the item sequence.
@@ -361,12 +388,3 @@ impl Tagger {
         unimplemented!()
     }
 }
-
-impl Drop for Tagger {
-    fn drop(&mut self) {
-        self.close();
-    }
-}
-
-unsafe impl Send for Tagger {}
-unsafe impl Sync for Tagger {}
