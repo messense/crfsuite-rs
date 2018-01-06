@@ -296,20 +296,40 @@ pub struct Tagger {
 impl Tagger {
     /// Construct a tagger
     pub fn new() -> Self {
-        unsafe {
-            Self {
-                model: ptr::null_mut(),
-                tagger: ptr::null_mut(),
-            }
+        Self {
+            model: ptr::null_mut(),
+            tagger: ptr::null_mut(),
         }
     }
 
     /// Open a model file
-    pub fn open(&mut self, name: &str) {
+    pub fn open(&mut self, name: &str) -> Result<()> {
+        // Close the model if it is already opened
+        self.close();
+        let name_cstr = CString::new(name).unwrap();
+        unsafe {
+            if crfsuite_create_instance_from_file(name_cstr.as_ptr(), self.model as *mut *mut _) != 0 {
+                return Err(CrfError::CreateInstanceError("Failed to a model instance for tagger.".to_string()));
+            }
+            if (*self.model).get_tagger.map(|f| f(self.model, self.tagger as *mut *mut _)).unwrap() != 0 {
+                return Err(CrfError::CreateInstanceError("Failed to obtain the tagger interface.".to_string()));
+            }
+        }
+        Ok(())
     }
 
     /// Close the model
     pub fn close(&mut self) {
+        unsafe {
+            if !self.tagger.is_null() {
+                (*self.tagger).release.map(|f| f(self.tagger));
+                self.tagger = ptr::null_mut();
+            }
+            if !self.model.is_null() {
+                (*self.model).release.map(|f| f(self.model));
+                self.model = ptr::null_mut();
+            }
+        }
     }
 
     /// Obtain the list of labels
@@ -339,6 +359,12 @@ impl Tagger {
     /// Compute the marginal probability of the label.
     pub fn marginal(&self, label: &str, position: u32) -> f64 {
         unimplemented!()
+    }
+}
+
+impl Drop for Tagger {
+    fn drop(&mut self) {
+        self.close();
     }
 }
 
