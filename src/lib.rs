@@ -2,6 +2,7 @@ extern crate libc;
 extern crate crfsuite_sys;
 
 use std::{mem, ptr, fmt, error};
+use std::ffi::{CStr, CString};
 use crfsuite_sys::*;
 
 #[derive(Debug, Clone)]
@@ -63,6 +64,7 @@ impl From<libc::c_int> for CrfSuiteError {
 pub enum CrfError {
     CrfSuiteError(CrfSuiteError),
     CreateInstanceError(String),
+    ParamNotFound(String),
 }
 
 impl error::Error for CrfError {
@@ -70,6 +72,7 @@ impl error::Error for CrfError {
         match *self {
             CrfError::CrfSuiteError(ref err) => err.description(),
             CrfError::CreateInstanceError(ref err) => err,
+            CrfError::ParamNotFound(_) => "Parameter not found"
         }
     }
 }
@@ -79,6 +82,7 @@ impl fmt::Display for CrfError {
         match *self {
             CrfError::CrfSuiteError(ref err) => err.fmt(f),
             CrfError::CreateInstanceError(ref err) => err.fmt(f),
+            CrfError::ParamNotFound(ref name) => write!(f, "Parameter {} not found", name),
         }
     }
 }
@@ -116,35 +120,154 @@ pub struct Trainer {
 }
 
 impl Trainer {
-    pub fn new() -> Result<Self> {
+    /// Construct a trainer
+    pub fn new() -> Self {
         unsafe {
             let data_ptr = libc::malloc(mem::size_of::<crfsuite_data_t>()) as *mut crfsuite_data_t;
             if !data_ptr.is_null() {
                 crfsuite_data_init(data_ptr);
             }
+            Self {
+                data: data_ptr,
+                trainer: ptr::null_mut()
+            }
         }
+    }
+
+    pub fn init(&mut self) -> Result<()> {
+        unsafe {
+            if (*self.data).attrs.is_null() {
+                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, (*self.data).attrs as *mut _);
+                if ret != 0 {
+                    return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for attributes.".to_string()));
+                }
+            }
+            if (*self.data).labels.is_null() {
+                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, (*self.data).labels as *mut _);
+                if ret != 0 {
+                    return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for labels.".to_string()));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Remove all instances in the data set
+    pub fn clear(&mut self) -> Result<()> {
+        if self.data.is_null() {
+            return Ok(());
+        }
+        unsafe {
+            if (*self.data).attrs.is_null() {
+                (*(*self.data).attrs).release.map(|release| release((*self.data).attrs));
+                (*self.data).attrs = ptr::null_mut();
+            }
+            if (*self.data).labels.is_null() {
+                (*(*self.data).labels).release.map(|release| release((*self.data).labels));
+                (*self.data).labels = ptr::null_mut();
+            }
+            crfsuite_data_finish(self.data);
+            crfsuite_data_init(self.data);
+        }
+        Ok(())
+    }
+
+    /// Append an instance (item/label sequence) to the data set.
+    pub fn append(&mut self, xseq: &ItemSequence, yseq: &ItemSequence, group: u32) -> Result<()> {
         unimplemented!()
     }
 
-    pub fn append() {
+    /// Initialize the training algorithm.
+    pub fn select(&mut self, algorithm: &str, typ: &str) -> Result<bool> {
+        unimplemented!()
     }
 
-    pub fn select() {
+    /// Run the training algorithm.
+    ///
+    /// This function starts the training algorithm with the data set given
+    /// by `append()` function.
+    pub fn train(&mut self, model: &str, holdout: u32) -> Result<()> {
+        unimplemented!()
     }
 
-    pub fn train() {
+    /// Obtain the list of parameters.
+    ///
+    /// This function returns the list of parameter names available for the
+    /// graphical model and training algorithm specified by `select()` function.
+    pub fn params(&self) -> Vec<String> {
+        unsafe {
+            let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
+            let n = (*pms).num.map(|f| f(pms)).unwrap();
+            let mut ret = Vec::with_capacity(n as usize);
+            for i in 0..n {
+                let mut name: *mut libc::c_char = ptr::null_mut();
+                (*pms).name.map(|f| f(pms, i, &mut name));
+                let c_str = CStr::from_ptr(name);
+                ret.push(c_str.to_string_lossy().into_owned());
+            }
+            ret
+        }
     }
 
-    pub fn params() {
+    /// Set a training parameter.
+    ///
+    /// This function sets a parameter value for the graphical model and
+    /// training algorithm specified by `select()` function.
+    pub fn set(&mut self, name: &str, value: &str) -> Result<()> {
+        let name_cstr = CString::new(name).unwrap();
+        let value_cstr = CString::new(value).unwrap();
+        unsafe {
+            let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
+            if (*pms).set.map(|f| f(pms, name_cstr.as_ptr(), value_cstr.as_ptr())).unwrap() != 0 {
+                (*pms).release.map(|f| f(pms));
+                return Err(CrfError::ParamNotFound(name.to_string()));
+            }
+            (*pms).release.map(|f| f(pms));
+        }
+        Ok(())
     }
 
-    pub fn set() {
+    /// Get the value of a training parameter.
+    ///
+    /// This function gets a parameter value for the graphical model and
+    /// training algorithm specified by `select()` function.
+    pub fn get(&self, name: &str) -> Result<String> {
+        let name_cstr = CString::new(name).unwrap();
+        let value;
+        unsafe {
+            let mut value_ptr: *mut libc::c_char = ptr::null_mut();
+            let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
+            if (*pms).get.map(|f| f(pms, name_cstr.as_ptr(), &mut value_ptr)).unwrap() != 0 {
+                (*pms).release.map(|f| f(pms));
+                return Err(CrfError::ParamNotFound(name.to_string()));
+            }
+            value = CStr::from_ptr(value_ptr).to_string_lossy().into_owned();
+            (*pms).free.map(|f| f(pms, value_ptr));
+            (*pms).release.map(|f| f(pms));
+        }
+        Ok(value)
     }
 
-    pub fn get() {
-    }
-
-    pub fn help() {
+    /// Get the description of a training parameter.
+    ///
+    /// This function obtains the help message for the parameter specified
+    /// by the name. The graphical model and training algorithm must be
+    /// selected by `select()` function before calling this function.
+    pub fn help(&self, name: &str) -> Result<String> {
+        let name_cstr = CString::new(name).unwrap();
+        let value;
+        unsafe {
+            let mut value_ptr: *mut libc::c_char = ptr::null_mut();
+            let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
+            if (*pms).help.map(|f| f(pms, name_cstr.as_ptr(), ptr::null_mut(), &mut value_ptr)).unwrap() != 0 {
+                (*pms).release.map(|f| f(pms));
+                return Err(CrfError::ParamNotFound(name.to_string()));
+            }
+            value = CStr::from_ptr(value_ptr).to_string_lossy().into_owned();
+            (*pms).free.map(|f| f(pms, value_ptr));
+            (*pms).release.map(|f| f(pms));
+        }
+        Ok(value)
     }
 }
 
