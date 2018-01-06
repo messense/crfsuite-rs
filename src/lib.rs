@@ -294,31 +294,51 @@ pub struct Tagger {
 }
 
 impl Tagger {
-    pub fn new() {
+    /// Construct a tagger
+    pub fn new() -> Self {
+        unsafe {
+            Self {
+                model: ptr::null_mut(),
+                tagger: ptr::null_mut(),
+            }
+        }
     }
 
-    pub fn open() {
+    /// Open a model file
+    pub fn open(&mut self, name: &str) {
     }
 
-    pub fn close() {
+    /// Close the model
+    pub fn close(&mut self) {
     }
 
-    pub fn labels() {
+    /// Obtain the list of labels
+    pub fn labels(&self) -> Vec<String> {
+        unimplemented!()
     }
 
-    pub fn tag() {
+    /// Predict the label sequence for the item sequence.
+    pub fn tag(&self, xseq: &ItemSequence) -> Vec<String> {
+        unimplemented!()
     }
 
-    pub fn set() {
+    /// Set an item sequence.
+    pub fn set(&mut self, xseq: &ItemSequence) {
     }
 
-    pub fn viterbi() {
+    /// Find the Viterbi label sequence for the item sequence.
+    pub fn viterbi(&self) -> Vec<String> {
+        unimplemented!()
     }
 
-    pub fn probability() {
+    /// Compute the probability of the label sequence.
+    pub fn probability(&self, yseq: &[String]) -> f64 {
+        unimplemented!()
     }
 
-    pub fn marginal() {
+    /// Compute the marginal probability of the label.
+    pub fn marginal(&self, label: &str, position: u32) -> f64 {
+        unimplemented!()
     }
 }
 
