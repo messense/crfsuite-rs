@@ -292,7 +292,10 @@ pub struct Model(*mut crfsuite_model_t);
 /// The tagger
 /// provides the functionality for predicting label sequences for input sequences using a model.
 #[derive(Debug)]
-pub struct Tagger(*mut crfsuite_tagger_t);
+pub struct Tagger<'a> {
+    model: &'a Model,
+    tagger: *mut crfsuite_tagger_t,
+}
 
 impl Model {
     pub fn new() -> Self {
@@ -328,13 +331,18 @@ impl Model {
         }
     }
 
-    unsafe fn tagger(&self) -> Result<Tagger> {
+    pub fn tagger<'a>(&'a self) -> Result<Tagger<'a>> {
         let mut tagger = ptr::null_mut();
-        let ret = (*self.0).get_tagger.map(|f| f(self.0, tagger as *mut *mut _)).unwrap();
-        if ret != 0 {
-            return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+        unsafe {
+            let ret = (*self.0).get_tagger.map(|f| f(self.0, tagger as *mut *mut _)).unwrap();
+            if ret != 0 {
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+            Ok(Tagger {
+                model: self,
+                tagger: tagger
+            })
         }
-        Ok(Tagger(tagger))
     }
 }
 
@@ -347,17 +355,16 @@ impl Drop for Model {
 unsafe impl Send for Model {}
 unsafe impl Sync for Model {}
 
-impl Drop for Tagger {
+impl<'a> Drop for Tagger<'a> {
     fn drop(&mut self) {
-        let tagger = self.0;
-        if tagger.is_null() {
+        if self.tagger.is_null() {
             return;
         }
-        unsafe { (*tagger).release.map(|f| f(tagger)); }
+        unsafe { (*self.tagger).release.map(|f| f(self.tagger)); }
     }
 }
 
-impl Tagger {
+impl<'a> Tagger<'a> {
     /// Obtain the list of labels
     pub fn labels(&self) -> Vec<String> {
         unimplemented!()
