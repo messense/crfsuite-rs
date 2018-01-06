@@ -59,7 +59,31 @@ impl From<libc::c_int> for CrfSuiteError {
     }
 }
 
-pub type Result<T> = ::std::result::Result<T, CrfSuiteError>;
+#[derive(Debug, Clone)]
+pub enum CrfError {
+    CrfSuiteError(CrfSuiteError),
+    CreateInstanceError(String),
+}
+
+impl error::Error for CrfError {
+    fn description(&self) -> &str {
+        match *self {
+            CrfError::CrfSuiteError(ref err) => err.description(),
+            CrfError::CreateInstanceError(ref err) => err,
+        }
+    }
+}
+
+impl fmt::Display for CrfError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CrfError::CrfSuiteError(ref err) => err.fmt(f),
+            CrfError::CreateInstanceError(ref err) => err.fmt(f),
+        }
+    }
+}
+
+pub type Result<T> = ::std::result::Result<T, CrfError>;
 
 /// Tuple of attribute and its value.
 #[derive(Debug)]
