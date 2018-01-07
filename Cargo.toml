@@ -9,4 +9,4 @@ keywords = ["crf", "crfsuite"]
 
 [dependencies]
 libc = "0.2.35"
-crfsuite-sys = { path = "crfsuite-sys", version = "0.1.0" }
+crfsuite-sys = { path = "crfsuite-sys", version = "0.1" }

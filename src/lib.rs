@@ -180,15 +180,17 @@ impl Trainer {
 
     pub fn init(&mut self) -> Result<()> {
         unsafe {
-            if (*self.data).attrs.is_null() {
-                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, (*self.data).attrs as *mut _);
-                if ret != 0 {
+            if (*self.data).labels.is_null() {
+                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, mem::transmute(&mut (*self.data).attrs));
+                // ret is c bool
+                if ret == 0 {
                     return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for attributes.".to_string()));
                 }
             }
             if (*self.data).labels.is_null() {
-                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, (*self.data).labels as *mut _);
-                if ret != 0 {
+                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, mem::transmute(&mut (*self.data).labels));
+                // ret is c bool
+                if ret == 0 {
                     return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for labels.".to_string()));
                 }
             }
@@ -222,8 +224,25 @@ impl Trainer {
     }
 
     /// Initialize the training algorithm.
-    pub fn select(&mut self, algorithm: Algorithm, typ: GraphicalModel) -> Result<bool> {
-        unimplemented!()
+    pub fn select(&mut self, algorithm: Algorithm, typ: GraphicalModel) -> Result<()> {
+        unsafe {
+            // Release the trainer if it is already initialzed
+            if !self.trainer.is_null() {
+                (*self.trainer).release.map(|f| f(self.trainer));
+                self.trainer = ptr::null_mut();
+            }
+            let mut tid = String::from("train/");
+            tid.push_str(&typ.to_string());
+            tid.push_str("/");
+            tid.push_str(&algorithm.to_string());
+            let tid_cstr = CString::new(tid).unwrap();
+            let ret = crfsuite_create_instance(tid_cstr.as_ptr(), mem::transmute(&mut self.trainer));
+            // ret is c bool
+            if ret == 0 {
+                return Err(CrfError::CreateInstanceError("Failed to create a instance for trainer.".to_string()));
+            }
+        }
+        Ok(())
     }
 
     /// Run the training algorithm.
