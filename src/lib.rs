@@ -184,7 +184,7 @@ impl Trainer {
         }
     }
 
-    pub fn init(&mut self) -> Result<()> {
+    fn init(&mut self) -> Result<()> {
         unsafe {
             if (*self.data).labels.is_null() {
                 let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, mem::transmute(&mut (*self.data).attrs));
@@ -226,6 +226,11 @@ impl Trainer {
 
     /// Append an instance (item/label sequence) to the data set.
     pub fn append(&mut self, xseq: &[Item], yseq: &[Item], group: u32) -> Result<()> {
+        unsafe {
+            if (*self.data).attrs.is_null() || (*self.data).labels.is_null() {
+                self.init()?;
+            }
+        }
         unimplemented!()
     }
 
