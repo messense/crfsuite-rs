@@ -5,7 +5,7 @@ use std::{mem, ptr, fmt, error, slice};
 use std::ffi::{CStr, CString};
 use crfsuite_sys::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CrfSuiteError {
     Incompatible,
     InternalLogic,
@@ -60,11 +60,13 @@ impl From<libc::c_int> for CrfSuiteError {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CrfError {
     CrfSuiteError(CrfSuiteError),
     CreateInstanceError(String),
     ParamNotFound(String),
+    AlgorithmNotSelected,
+    EmptyData,
 }
 
 impl error::Error for CrfError {
@@ -72,7 +74,9 @@ impl error::Error for CrfError {
         match *self {
             CrfError::CrfSuiteError(ref err) => err.description(),
             CrfError::CreateInstanceError(ref err) => err,
-            CrfError::ParamNotFound(_) => "Parameter not found"
+            CrfError::ParamNotFound(_) => "Parameter not found",
+            CrfError::AlgorithmNotSelected => "Trainer algorithm not selected",
+            CrfError::EmptyData => "Trainer data is empty",
         }
     }
 }
@@ -83,6 +87,8 @@ impl fmt::Display for CrfError {
             CrfError::CrfSuiteError(ref err) => err.fmt(f),
             CrfError::CreateInstanceError(ref err) => err.fmt(f),
             CrfError::ParamNotFound(ref name) => write!(f, "Parameter {} not found", name),
+            CrfError::AlgorithmNotSelected => write!(f, "The trainer is not initialized. Call Trainer::select before Trainer::train."),
+            CrfError::EmptyData=> write!(f, "The data is empty. Call Trainer::append before Trainer::train."),
         }
     }
 }
@@ -249,8 +255,21 @@ impl Trainer {
     ///
     /// This function starts the training algorithm with the data set given
     /// by `append()` function.
-    pub fn train(&mut self, model: &str, holdout: u32) -> Result<()> {
-        unimplemented!()
+    pub fn train(&mut self, model: &str, holdout: i32) -> Result<()> {
+        if self.trainer.is_null() {
+            return Err(CrfError::AlgorithmNotSelected);
+        }
+        unsafe {
+            if (*self.data).attrs.is_null() || (*self.data).labels.is_null() {
+                return Err(CrfError::EmptyData);
+            }
+            let model_cstr = CString::new(model).unwrap();
+            let ret = (*self.trainer).train.map(|f| f(self.trainer, self.data, model_cstr.as_ptr(), holdout)).unwrap();
+            if ret != 0 {
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+        }
+        Ok(())
     }
 
     /// Obtain the list of parameters.
