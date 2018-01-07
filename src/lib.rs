@@ -1,7 +1,7 @@
 extern crate libc;
 extern crate crfsuite_sys;
 
-use std::{mem, ptr, fmt, error};
+use std::{mem, ptr, fmt, error, slice};
 use std::ffi::{CStr, CString};
 use crfsuite_sys::*;
 
@@ -332,7 +332,7 @@ impl Model {
     }
 
     pub fn tagger<'a>(&'a self) -> Result<Tagger<'a>> {
-        let mut tagger = ptr::null_mut();
+        let tagger = ptr::null_mut();
         unsafe {
             let ret = (*self.0).get_tagger.map(|f| f(self.0, tagger as *mut *mut _)).unwrap();
             if ret != 0 {
@@ -343,6 +343,15 @@ impl Model {
                 tagger: tagger
             })
         }
+    }
+
+    unsafe fn get_attrs(&self) -> Result<*mut crfsuite_dictionary_t> {
+        let mut attrs: *mut crfsuite_dictionary_t = ptr::null_mut();
+        let ret = (*self.0).get_attrs.map(|f| f(self.0, &mut attrs)).unwrap();
+        if ret != 0 {
+            return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+        }
+        Ok(attrs)
     }
 }
 
@@ -371,13 +380,45 @@ impl<'a> Tagger<'a> {
     }
 
     /// Predict the label sequence for the item sequence.
-    pub fn tag(&mut self, xseq: &ItemSequence) -> Vec<String> {
-        self.set(xseq);
-        self.viterbi()
+    pub fn tag(&mut self, xseq: &ItemSequence) -> Result<Vec<String>> {
+        self.set(xseq)?;
+        Ok(self.viterbi())
     }
 
     /// Set an item sequence.
-    fn set(&mut self, xseq: &ItemSequence) {
+    fn set(&mut self, xseq: &ItemSequence) -> Result<()> {
+        unsafe {
+            let mut instance: crfsuite_instance_t = mem::uninitialized();
+            let attrs = self.model.get_attrs()?;
+            let xseq_len = xseq.len();
+            crfsuite_instance_init_n(&mut instance, xseq_len as i32);
+            let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
+            for t in 0..xseq_len {
+                let items = &xseq[t];
+                let mut crf_item = &mut crf_items[t];
+                // Set the attributes in the item
+                crfsuite_item_init(crf_item);
+                for attr in items.iter() {
+                    let name_cstr = CString::new(&attr.name[..]).unwrap();
+                    let aid = (*attrs).to_id.map(|f| f(attrs, name_cstr.as_ptr())).unwrap();
+                    if aid >= 0 {
+                        let mut cont: crfsuite_attribute_t = mem::uninitialized();
+                        crfsuite_attribute_set(&mut cont, aid, attr.value);
+                        crfsuite_item_append_attribute(crf_item, &cont);
+                    }
+                }
+            }
+
+            // Set the instance to the tagger
+            let ret = (*self.tagger).set.map(|f| f(self.tagger, &mut instance)).unwrap();
+            if ret != 0 {
+                (*attrs).release.map(|f| f(attrs));
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+            crfsuite_instance_finish(&mut instance);
+            (*attrs).release.map(|f| f(attrs));
+        }
+        Ok(())
     }
 
     /// Find the Viterbi label sequence for the item sequence.
