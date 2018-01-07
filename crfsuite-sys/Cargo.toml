@@ -2,6 +2,9 @@
 name = "crfsuite-sys"
 version = "0.1.0"
 authors = ["Messense Lv <messense@icloud.com>"]
+description = "Rust binding to crfsuite"
+license = "MIT"
+repository = "https://github.com/bosondata/crfsuite"
 build = "build.rs"
 links = "crfsuite"
 
