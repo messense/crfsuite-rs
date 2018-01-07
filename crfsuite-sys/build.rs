@@ -22,6 +22,8 @@ fn build_crfsuite() {
         .build_target("crfsuite")
         .build();
     println!("cargo:rustc-link-search=native={}/build", dst.display());
+    println!("cargo:rustc-link-lib=static=cqdb");
+    println!("cargo:rustc-link-lib=static=lbfgs");
     println!("cargo:rustc-link-lib=static=crfsuite");
 
     let bindings = bindgen::Builder::default()
