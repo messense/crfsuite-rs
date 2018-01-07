@@ -95,8 +95,6 @@ pub struct Attribute {
 
 /// Type of an item (equivalent to an attribute vector) in a sequence
 pub type Item = Vec<Attribute>;
-/// Type of an item sequence (equivalent to item vector).
-pub type ItemSequence = Vec<Item>;
 
 impl Attribute {
     pub fn new<T: Into<String>>(name: T, value: f64) -> Self {
@@ -216,7 +214,7 @@ impl Trainer {
     }
 
     /// Append an instance (item/label sequence) to the data set.
-    pub fn append(&mut self, xseq: &ItemSequence, yseq: &ItemSequence, group: u32) -> Result<()> {
+    pub fn append(&mut self, xseq: &[Item], yseq: &[Item], group: u32) -> Result<()> {
         unimplemented!()
     }
 
@@ -454,13 +452,13 @@ impl<'a> Tagger<'a> {
     }
 
     /// Predict the label sequence for the item sequence.
-    pub fn tag(&mut self, xseq: &ItemSequence) -> Result<Vec<String>> {
+    pub fn tag(&mut self, xseq: &[Item]) -> Result<Vec<String>> {
         self.set(xseq)?;
         self.viterbi()
     }
 
     /// Set an item sequence.
-    fn set(&mut self, xseq: &ItemSequence) -> Result<()> {
+    fn set(&mut self, xseq: &[Item]) -> Result<()> {
         unsafe {
             let mut instance: crfsuite_instance_t = mem::uninitialized();
             let attrs = self.model.get_attrs()?;
