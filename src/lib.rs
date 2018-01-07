@@ -110,6 +110,21 @@ impl Attribute {
     }
 }
 
+/// The training algorithm
+#[derive(Debug, Clone)]
+pub enum Algorithm {
+    /// Gradient descent using the L-BFGS method
+    LBFGS,
+    /// Stochastic Gradient Descent with L2 regularization term
+    L2SGD,
+    /// Averaged Perceptron
+    AP,
+    /// Passive Aggressive
+    PA,
+    /// Adaptive Regularization Of Weight Vector
+    AROW,
+}
+
 /// The trainer
 /// It maintains a data set for training, and provides an interface
 /// to various graphical models and training algorithms.
@@ -178,7 +193,7 @@ impl Trainer {
     }
 
     /// Initialize the training algorithm.
-    pub fn select(&mut self, algorithm: &str, typ: &str) -> Result<bool> {
+    pub fn select(&mut self, algorithm: Algorithm, typ: &str) -> Result<bool> {
         unimplemented!()
     }
 
