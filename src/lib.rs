@@ -125,6 +125,37 @@ pub enum Algorithm {
     AROW,
 }
 
+impl fmt::Display for Algorithm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let desc = match *self {
+            Algorithm::LBFGS => "lbfgs",
+            Algorithm::L2SGD => "l2sgd",
+            Algorithm::AP => "ap",
+            Algorithm::PA => "pa",
+            Algorithm::AROW => "arow",
+        };
+        write!(f, "{}", desc)
+    }
+}
+
+/// The graphical model
+#[derive(Debug, Clone)]
+pub enum GraphicalModel {
+    /// The 1st-order Markov CRF with state and transition features (dyad features).
+    /// State features are conditioned on combinations of attributes and labels,
+    /// and transition features are conditioned on label bigrams.
+    CRF1D,
+}
+
+impl fmt::Display for GraphicalModel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let desc = match *self {
+            GraphicalModel::CRF1D => "crf1d",
+        };
+        write!(f, "{}", desc)
+    }
+}
+
 /// The trainer
 /// It maintains a data set for training, and provides an interface
 /// to various graphical models and training algorithms.
@@ -193,7 +224,7 @@ impl Trainer {
     }
 
     /// Initialize the training algorithm.
-    pub fn select(&mut self, algorithm: Algorithm, typ: &str) -> Result<bool> {
+    pub fn select(&mut self, algorithm: Algorithm, typ: GraphicalModel) -> Result<bool> {
         unimplemented!()
     }
 
