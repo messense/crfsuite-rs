@@ -350,10 +350,7 @@ impl Drop for Trainer {
 
 /// The model
 #[derive(Debug)]
-pub struct Model {
-    model: *mut crfsuite_model_t,
-    initialized: bool
-}
+pub struct Model(*mut crfsuite_model_t);
 
 /// The tagger
 /// provides the functionality for predicting label sequences for input sequences using a model.
@@ -365,12 +362,7 @@ pub struct Tagger<'a> {
 
 impl Model {
     fn new() -> Self {
-        unsafe {
-            Model {
-                model: mem::uninitialized(),
-                initialized: false,
-            }
-        }
+        Model(ptr::null_mut())
     }
 
     /// Open a model file
@@ -384,11 +376,10 @@ impl Model {
     fn open(&mut self, name: &str) -> Result<()> {
         let name_cstr = CString::new(name).unwrap();
         unsafe {
-            let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), mem::transmute(&mut self.model));
+            let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), mem::transmute(&mut self.0));
             if ret != 0 {
                 return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
             }
-            self.initialized = true;
         }
         Ok(())
     }
@@ -396,9 +387,8 @@ impl Model {
     /// Close the model
     fn close(&mut self) {
         unsafe {
-            if self.initialized {
-                (*self.model).release.map(|f| f(self.model));
-                self.initialized = false;
+            if !self.0.is_null() {
+                (*self.0).release.map(|f| f(self.0));
             }
         }
     }
@@ -406,7 +396,7 @@ impl Model {
     pub fn tagger<'a>(&'a self) -> Result<Tagger<'a>> {
         unsafe {
             let mut tagger = ptr::null_mut();
-            let ret = (*self.model).get_tagger.map(|f| f(self.model, &mut tagger)).unwrap();
+            let ret = (*self.0).get_tagger.map(|f| f(self.0, &mut tagger)).unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
@@ -419,7 +409,7 @@ impl Model {
 
     unsafe fn get_attrs(&self) -> Result<*mut crfsuite_dictionary_t> {
         let mut attrs: *mut crfsuite_dictionary_t = ptr::null_mut();
-        let ret = (*self.model).get_attrs.map(|f| f(self.model, &mut attrs)).unwrap();
+        let ret = (*self.0).get_attrs.map(|f| f(self.0, &mut attrs)).unwrap();
         if ret != 0 {
             return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
         }
@@ -428,7 +418,7 @@ impl Model {
 
     unsafe fn get_labels(&self) -> Result<*mut crfsuite_dictionary_t> {
         let mut labels: *mut crfsuite_dictionary_t = ptr::null_mut();
-        let ret = (*self.model).get_labels.map(|f| f(self.model, &mut labels)).unwrap();
+        let ret = (*self.0).get_labels.map(|f| f(self.0, &mut labels)).unwrap();
         if ret != 0 {
             return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
         }
@@ -459,7 +449,7 @@ impl<'a> Tagger<'a> {
             let length = (*labels).num.map(|f| f(labels)).unwrap();
             let mut lseq = Vec::with_capacity(length as usize);
             for i in 0..length {
-                let mut label: *mut libc::c_char = mem::uninitialized();
+                let mut label: *mut libc::c_char = ptr::null_mut();
                 let ret = (*labels).to_string.map(|f| f(labels, i, mem::transmute(&mut label))).unwrap();
                 if ret != 0 {
                     (*labels).release.map(|f| f(labels));
@@ -535,7 +525,7 @@ impl<'a> Tagger<'a> {
             let mut yseq = Vec::with_capacity(length as usize);
             // Convert the Viterbi path to a label sequence
             for path in paths.into_iter() {
-                let mut label: *mut libc::c_char = mem::uninitialized();
+                let mut label: *mut libc::c_char = ptr::null_mut();
                 let ret = (*labels).to_string.map(|f| f(labels, path, mem::transmute(&mut label))).unwrap();
                 if ret != 0 {
                     (*labels).release.map(|f| f(labels));
