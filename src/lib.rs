@@ -225,13 +225,40 @@ impl Trainer {
     }
 
     /// Append an instance (item/label sequence) to the data set.
-    pub fn append(&mut self, xseq: &[Item], yseq: &[Item], group: u32) -> Result<()> {
+    pub fn append<T: AsRef<str>>(&mut self, xseq: &[Item], yseq: &[T], group: i32) -> Result<()> {
         unsafe {
             if (*self.data).attrs.is_null() || (*self.data).labels.is_null() {
                 self.init()?;
             }
+            let xseq_len = xseq.len();
+            assert_eq!(xseq_len, yseq.len());
+            let mut instance: crfsuite_instance_t = mem::uninitialized();
+            crfsuite_instance_init_n(&mut instance, xseq_len as i32);
+            let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
+            for t in 0..xseq_len {
+                let items = &xseq[t];
+                let mut crf_item = &mut crf_items[t];
+                // Set the attributes in the item
+                crfsuite_item_init_n(crf_item, items.len() as i32);
+                let mut contents = slice::from_raw_parts_mut(crf_item.contents, crf_item.num_contents as usize);
+                for (content, item) in contents.iter_mut().zip(items) {
+                    let name_cstr = CString::new(&item.name[..]).unwrap();
+                    let aid = (*(*self.data).attrs).get.map(|f| f((*self.data).attrs, name_cstr.as_ptr())).unwrap();
+                    (*content).aid = aid;
+                    (*content).value = item.value;
+                }
+                // Set the label of the item
+                let y_value = yseq[t].as_ref();
+                let y_cstr = CString::new(y_value).unwrap();
+                let label = (*(*self.data).labels).get.map(|f| f((*self.data).labels, y_cstr.as_ptr())).unwrap();
+            }
+            instance.group = group;
+            // Append the instance to the training set
+            crfsuite_data_append(self.data, &instance);
+            // Finish the instance
+            crfsuite_instance_finish(&mut instance);
         }
-        unimplemented!()
+        Ok(())
     }
 
     /// Initialize the training algorithm.
