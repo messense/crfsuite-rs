@@ -353,6 +353,15 @@ impl Model {
         }
         Ok(attrs)
     }
+
+    unsafe fn get_labels(&self) -> Result<*mut crfsuite_dictionary_t> {
+        let mut labels: *mut crfsuite_dictionary_t = ptr::null_mut();
+        let ret = (*self.0).get_labels.map(|f| f(self.0, &mut labels)).unwrap();
+        if ret != 0 {
+            return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+        }
+        Ok(labels)
+    }
 }
 
 impl Drop for Model {
@@ -382,7 +391,7 @@ impl<'a> Tagger<'a> {
     /// Predict the label sequence for the item sequence.
     pub fn tag(&mut self, xseq: &ItemSequence) -> Result<Vec<String>> {
         self.set(xseq)?;
-        Ok(self.viterbi())
+        self.viterbi()
     }
 
     /// Set an item sequence.
@@ -422,8 +431,33 @@ impl<'a> Tagger<'a> {
     }
 
     /// Find the Viterbi label sequence for the item sequence.
-    pub fn viterbi(&self) -> Vec<String> {
-        unimplemented!()
+    pub fn viterbi(&self) -> Result<Vec<String>> {
+        unsafe {
+            // Make sure that the current instance is not empty
+            let length = (*self.tagger).length.map(|f| f(self.tagger)).unwrap();
+            if length <= 0 {
+                return Ok(Vec::new());
+            }
+            let labels = self.model.get_labels()?;
+            // Run the Viterbi algorithm
+            let mut score: floatval_t = mem::uninitialized();
+            let mut paths = Vec::with_capacity(length as usize);
+            let ret = (*self.tagger).viterbi.map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score)).unwrap();
+            let mut yseq = Vec::with_capacity(length as usize);
+            // Convert the Viterbi path to a label sequence
+            for path in paths.into_iter() {
+                let label: *mut libc::c_char = ptr::null_mut();
+                let ret = (*labels).to_string.map(|f| f(labels, path, label as *mut *const _)).unwrap();
+                if ret != 0 {
+                    (*labels).release.map(|f| f(labels));
+                    return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+                }
+                yseq.push(CStr::from_ptr(label).to_string_lossy().into_owned());
+                (*labels).free.map(|f| f(labels, label));
+            }
+            (*labels).release.map(|f| f(labels));
+            Ok(yseq)
+        }
     }
 
     /// Compute the probability of the label sequence.
