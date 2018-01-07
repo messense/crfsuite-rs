@@ -63,6 +63,7 @@ impl From<libc::c_int> for CrfSuiteError {
 #[derive(Debug, Clone)]
 pub enum CrfError {
     CrfSuiteError(CrfSuiteError),
+    CreateInstanceError(String),
     ParamNotFound(String),
 }
 
@@ -70,6 +71,7 @@ impl error::Error for CrfError {
     fn description(&self) -> &str {
         match *self {
             CrfError::CrfSuiteError(ref err) => err.description(),
+            CrfError::CreateInstanceError(ref err) => err,
             CrfError::ParamNotFound(_) => "Parameter not found"
         }
     }
@@ -79,6 +81,7 @@ impl fmt::Display for CrfError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             CrfError::CrfSuiteError(ref err) => err.fmt(f),
+            CrfError::CreateInstanceError(ref err) => err.fmt(f),
             CrfError::ParamNotFound(ref name) => write!(f, "Parameter {} not found", name),
         }
     }
@@ -180,13 +183,13 @@ impl Trainer {
             if (*self.data).attrs.is_null() {
                 let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, (*self.data).attrs as *mut _);
                 if ret != 0 {
-                    return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+                    return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for attributes.".to_string()));
                 }
             }
             if (*self.data).labels.is_null() {
                 let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, (*self.data).labels as *mut _);
                 if ret != 0 {
-                    return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+                    return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for labels.".to_string()));
                 }
             }
         }
@@ -364,7 +367,7 @@ impl Model {
         unsafe {
             let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), mem::transmute(&mut self.model));
             if ret != 0 {
-                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+                return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
             }
             self.initialized = true;
         }
