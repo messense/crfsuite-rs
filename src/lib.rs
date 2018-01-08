@@ -104,12 +104,12 @@ impl fmt::Display for CrfError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             CrfError::CrfSuiteError(ref err) => err.fmt(f),
-            CrfError::CreateInstanceError(ref err) => err.fmt(f),
             CrfError::ParamNotFound(ref name) => write!(f, "Parameter {} not found", name),
             CrfError::AlgorithmNotSelected => write!(f, "The trainer is not initialized. Call Trainer::select before Trainer::train."),
             CrfError::EmptyData=> write!(f, "The data is empty. Call Trainer::append before Trainer::train."),
-            CrfError::InvalidArgument(ref err) => err.fmt(f),
-            CrfError::ValueError(ref err) => err.fmt(f),
+            CrfError::CreateInstanceError(ref err) |
+                CrfError::InvalidArgument(ref err) |
+                CrfError::ValueError(ref err) => err.fmt(f),
         }
     }
 }
@@ -228,6 +228,12 @@ pub struct Trainer {
     trainer: *mut crfsuite_trainer_t,
 }
 
+impl Default for Trainer {
+    fn default() -> Self {
+        Trainer::new()
+    }
+}
+
 impl Trainer {
     /// Construct a trainer
     pub fn new() -> Self {
@@ -247,14 +253,14 @@ impl Trainer {
         unsafe {
             let interface = CString::new("dictionary").unwrap();
             if (*self.data).labels.is_null() {
-                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, mem::transmute(&mut (*self.data).attrs));
+                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, &mut (*self.data).attrs as *mut *mut _ as *mut *mut _);
                 // ret is c bool
                 if ret == 0 {
                     return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for attributes.".to_string()));
                 }
             }
             if (*self.data).labels.is_null() {
-                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, mem::transmute(&mut (*self.data).labels));
+                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, &mut (*self.data).labels as *mut *mut _ as *mut *mut _);
                 // ret is c bool
                 if ret == 0 {
                     return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for labels.".to_string()));
@@ -333,7 +339,7 @@ impl Trainer {
     }
 
     /// Initialize the training algorithm.
-    pub fn select(&mut self, algorithm: Algorithm, typ: GraphicalModel) -> Result<()> {
+    pub fn select(&mut self, algorithm: &Algorithm, typ: &GraphicalModel) -> Result<()> {
         unsafe {
             // Release the trainer if it is already initialzed
             if !self.trainer.is_null() {
@@ -345,7 +351,7 @@ impl Trainer {
             tid.push_str("/");
             tid.push_str(&algorithm.to_string());
             let tid_cstr = CString::new(tid).unwrap();
-            let ret = crfsuite_create_instance(tid_cstr.as_ptr(), mem::transmute(&mut self.trainer));
+            let ret = crfsuite_create_instance(tid_cstr.as_ptr(), &mut self.trainer as *mut *mut _ as *mut *mut _);
             // ret is c bool
             if ret == 0 {
                 return Err(CrfError::CreateInstanceError("Failed to create a instance for trainer.".to_string()));
@@ -508,7 +514,7 @@ impl Model {
     fn open(&mut self, name: &str) -> Result<()> {
         let name_cstr = CString::new(name).unwrap();
         unsafe {
-            let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), mem::transmute(&mut self.0));
+            let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), &mut self.0 as *mut *mut _ as *mut *mut _);
             if ret != 0 {
                 return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
             }
@@ -525,7 +531,7 @@ impl Model {
         }
     }
 
-    pub fn tagger<'a>(&'a self) -> Result<Tagger<'a>> {
+    pub fn tagger(&self) -> Result<Tagger> {
         unsafe {
             let mut tagger = ptr::null_mut();
             let ret = (*self.0).get_tagger.map(|f| f(self.0, &mut tagger)).unwrap();
@@ -582,7 +588,7 @@ impl<'a> Tagger<'a> {
             let mut lseq = Vec::with_capacity(length as usize);
             for i in 0..length {
                 let mut label: *mut libc::c_char = ptr::null_mut();
-                let ret = (*labels).to_string.map(|f| f(labels, i, mem::transmute(&mut label))).unwrap();
+                let ret = (*labels).to_string.map(|f| f(labels, i, &mut label as *mut *mut _ as *mut *const _)).unwrap();
                 if ret != 0 {
                     (*labels).release.map(|f| f(labels)).unwrap();
                     return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -657,9 +663,9 @@ impl<'a> Tagger<'a> {
             paths.set_len(length as usize);
             let mut yseq = Vec::with_capacity(length as usize);
             // Convert the Viterbi path to a label sequence
-            for path in paths.into_iter() {
+            for path in paths {
                 let mut label: *mut libc::c_char = ptr::null_mut();
-                let ret = (*labels).to_string.map(|f| f(labels, path, mem::transmute(&mut label))).unwrap();
+                let ret = (*labels).to_string.map(|f| f(labels, path, &mut label as *mut *mut _ as *mut *const _)).unwrap();
                 if ret != 0 {
                     (*labels).release.map(|f| f(labels)).unwrap();
                     return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -678,7 +684,7 @@ impl<'a> Tagger<'a> {
         unsafe {
             // Make sure that the current instance is not empty
             let length = (*self.tagger).length.map(|f| f(self.tagger)).unwrap() as usize;
-            if length <= 0 {
+            if length == 0 {
                 return Ok(score);
             }
             // Make sure |y| == |x|
@@ -721,7 +727,7 @@ impl<'a> Tagger<'a> {
         unsafe {
             // Make sure that the current instance is not empty
             let length = (*self.tagger).length.map(|f| f(self.tagger)).unwrap() as usize;
-            if length <= 0 {
+            if length == 0 {
                 return Ok(prob);
             }
             // Make sure that 0 <= position < |x|.

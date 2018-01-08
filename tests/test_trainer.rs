@@ -12,7 +12,7 @@ fn test_trainer_train_uninitialized() {
 #[test]
 fn test_trainer_train_empty_data() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::LBFGS, &GraphicalModel::CRF1D).unwrap();
     let ret = trainer.train("tests/test.crfsuite", -1i32);
     assert_eq!(ret.err(), Some(CrfError::EmptyData));
 }
@@ -32,7 +32,7 @@ fn test_train_and_tag() {
     ];
     let yseq = ["sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy"];
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::LBFGS, &GraphicalModel::CRF1D).unwrap();
     trainer.append(&xseq, &yseq, 0i32).unwrap();
     trainer.train("tests/test.crfsuite", -1i32).unwrap();
     drop(trainer);
@@ -47,7 +47,7 @@ fn test_train_and_tag() {
 #[test]
 fn test_clear_empty() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::LBFGS, &GraphicalModel::CRF1D).unwrap();
     trainer.clear().unwrap();
 }
 
@@ -58,7 +58,7 @@ fn test_clear_not_empty() {
     ];
     let yseq = ["sunny"];
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::LBFGS, &GraphicalModel::CRF1D).unwrap();
     trainer.append(&xseq, &yseq, 0i32).unwrap();
     trainer.clear().unwrap();
 }
@@ -66,13 +66,13 @@ fn test_clear_not_empty() {
 #[test]
 fn test_params() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::LBFGS, &GraphicalModel::CRF1D).unwrap();
     let params = trainer.params();
     assert!(params.contains(&"c1".to_string()));
     assert!(params.contains(&"c2".to_string()));
     assert!(params.contains(&"num_memories".to_string()));
 
-    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::L2SGD, &GraphicalModel::CRF1D).unwrap();
     let params = trainer.params();
     assert!(!params.contains(&"c1".to_string()));
     assert!(params.contains(&"c2".to_string()));
@@ -81,11 +81,11 @@ fn test_params() {
 #[test]
 fn test_help() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::LBFGS, &GraphicalModel::CRF1D).unwrap();
     let msg = trainer.help("c1").unwrap();
     assert!(msg.contains("L1"));
 
-    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::L2SGD, &GraphicalModel::CRF1D).unwrap();
     let msg = trainer.help("c2").unwrap();
     assert!(msg.contains("L2"));
 }
@@ -93,7 +93,7 @@ fn test_help() {
 #[test]
 fn test_help_invalid_argument() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::LBFGS, &GraphicalModel::CRF1D).unwrap();
     let ret = trainer.help("foo");
     match ret.err().unwrap() {
         CrfError::ParamNotFound(_) => {},
@@ -104,14 +104,14 @@ fn test_help_invalid_argument() {
 #[test]
 fn test_get() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::L2SGD, &GraphicalModel::CRF1D).unwrap();
     trainer.get("c2").unwrap();
 }
 
 #[test]
 fn test_get_invalid_argument() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::L2SGD, &GraphicalModel::CRF1D).unwrap();
     let ret = trainer.get("foo");
     match ret.err().unwrap() {
         CrfError::ParamNotFound(_) => {},
@@ -122,7 +122,7 @@ fn test_get_invalid_argument() {
 #[test]
 fn test_set() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::L2SGD, &GraphicalModel::CRF1D).unwrap();
     let before = trainer.get("c2").unwrap();
     trainer.set("c2", "0.5").unwrap();
     let after = trainer.get("c2").unwrap();
@@ -132,7 +132,7 @@ fn test_set() {
 #[test]
 fn test_set_invalid_argument() {
     let mut trainer = Trainer::new();
-    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    trainer.select(&Algorithm::L2SGD, &GraphicalModel::CRF1D).unwrap();
     let ret = trainer.set("foo", "1.0");
     match ret.err().unwrap() {
         CrfError::ParamNotFound(_) => {},
