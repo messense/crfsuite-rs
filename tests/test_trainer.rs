@@ -100,3 +100,21 @@ fn test_help_invalid_argument() {
         _ => panic!("test fail")
     }
 }
+
+#[test]
+fn test_get() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    trainer.get("c2").unwrap();
+}
+
+#[test]
+fn test_get_invalid_argument() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    let ret = trainer.get("foo");
+    match ret.err().unwrap() {
+        CrfError::ParamNotFound(_) => {},
+        _ => panic!("test fail")
+    }
+}
