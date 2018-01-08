@@ -167,8 +167,8 @@ impl fmt::Display for Algorithm {
         let desc = match *self {
             Algorithm::LBFGS => "lbfgs",
             Algorithm::L2SGD => "l2sgd",
-            Algorithm::AP => "ap",
-            Algorithm::PA => "pa",
+            Algorithm::AP => "averaged-perceptron",
+            Algorithm::PA => "passive-aggressive",
             Algorithm::AROW => "arow",
         };
         write!(f, "{}", desc)
