@@ -17,3 +17,6 @@ libc = "0.2.35"
 bindgen = "0.32.1"
 cc = "1.0.3"
 cmake = "0.1.29"
+
+[badges]
+travis-ci = { repository = "bosondata/crfsuite-rs" }

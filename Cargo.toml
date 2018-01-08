@@ -6,7 +6,11 @@ description = "Safe wrapper of crfsuite"
 license = "MIT"
 repository = "https://github.com/bosondata/crfsuite"
 keywords = ["crf", "crfsuite"]
+readme = "README.md"
 
 [dependencies]
 libc = "0.2.35"
 crfsuite-sys = { path = "crfsuite-sys", version = "0.1" }
+
+[badges]
+travis-ci = { repository = "bosondata/crfsuite-rs" }
