@@ -1,0 +1,19 @@
+sudo: required
+language: rust
+rust:
+  - stable
+  - nightly
+
+cache:
+  directories:
+    - target
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode7.3
+      rust: stable
+
+script:
+  - cargo build
+  - cargo test
