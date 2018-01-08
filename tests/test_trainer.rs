@@ -1,6 +1,6 @@
 extern crate crfsuite;
 
-use crfsuite::{Trainer, Algorithm, GraphicalModel, CrfError, Attribute};
+use crfsuite::{Trainer, Algorithm, GraphicalModel, CrfError, Attribute, Model};
 
 #[test]
 fn test_trainer_train_uninitialized() {
@@ -18,7 +18,7 @@ fn test_trainer_train_empty_data() {
 }
 
 #[test]
-fn test_trainer_train() {
+fn test_train_and_tag() {
     let xseq = vec![
         vec![Attribute::new("walk", 1.0), Attribute::new("shop", 0.5)],
         vec![Attribute::new("walk", 1.0)],
@@ -35,4 +35,11 @@ fn test_trainer_train() {
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     trainer.append(&xseq, &yseq, 0i32).unwrap();
     trainer.train("tests/test.crfsuite", -1i32).unwrap();
+    drop(trainer);
+
+    // tag
+    let model = Model::from_file("tests/test.crfsuite").unwrap();
+    let mut tagger = model.tagger().unwrap();
+    let res = tagger.tag(&xseq).unwrap();
+    assert_eq!(res, yseq);
 }
