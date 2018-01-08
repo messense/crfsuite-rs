@@ -642,7 +642,34 @@ impl<'a> Tagger<'a> {
     }
 
     /// Compute the marginal probability of the label.
-    pub fn marginal(&self, label: &str, position: u32) -> Result<f64> {
-        unimplemented!()
+    pub fn marginal(&self, label: &str, position: i32) -> Result<f64> {
+        let mut prob: floatval_t = 0.0;
+        unsafe {
+            // Make sure that the current instance is not empty
+            let length = (*self.tagger).length.map(|f| f(self.tagger)).unwrap() as usize;
+            if length <= 0 {
+                return Ok(prob);
+            }
+            // Make sure that 0 <= position < |x|.
+            if position < 0 || length <= position as usize {
+                return Err(CrfError::InvalidArgument(format!("The position {} is out of range of {}", position, length)));
+            }
+            // Obtain the dictionary interface representing the labels in the model.
+            let labels = self.model.get_labels()?;
+            // Convert string labels into label IDs.
+            let y_cstr = CString::new(label).unwrap();
+            let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
+            if l < 0 {
+                (*labels).release.map(|f| f(labels));
+                return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", label)));
+            }
+            // Compute the score of the path.
+            let ret = (*self.tagger).marginal_point.map(|f| f(self.tagger, l, position, &mut prob)).unwrap();
+            (*labels).release.map(|f| f(labels));
+            if ret != 0 {
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+            Ok(prob)
+        }
     }
 }
