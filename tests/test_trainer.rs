@@ -43,3 +43,22 @@ fn test_train_and_tag() {
     let res = tagger.tag(&xseq).unwrap();
     assert_eq!(res, yseq);
 }
+
+#[test]
+fn test_clear_empty() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.clear().unwrap();
+}
+
+#[test]
+fn test_clear_not_empty() {
+    let xseq = vec![
+        vec![Attribute::new("walk", 1.0), Attribute::new("shop", 0.5)],
+    ];
+    let yseq = ["sunny"];
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    trainer.append(&xseq, &yseq, 0i32).unwrap();
+    trainer.clear().unwrap();
+}

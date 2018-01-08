@@ -244,11 +244,11 @@ impl Trainer {
             return Ok(());
         }
         unsafe {
-            if (*self.data).attrs.is_null() {
+            if !(*self.data).attrs.is_null() {
                 (*(*self.data).attrs).release.map(|release| release((*self.data).attrs));
                 (*self.data).attrs = ptr::null_mut();
             }
-            if (*self.data).labels.is_null() {
+            if !(*self.data).labels.is_null() {
                 (*(*self.data).labels).release.map(|release| release((*self.data).labels));
                 (*self.data).labels = ptr::null_mut();
             }
