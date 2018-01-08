@@ -120,6 +120,26 @@ impl Attribute {
     }
 }
 
+impl From<(String, f64)> for Attribute {
+    fn from(t: (String, f64)) -> Self {
+        let (name, value) = t;
+        Self {
+            name,
+            value
+        }
+    }
+}
+
+impl<'a> From<(&'a str, f64)> for Attribute {
+    fn from(t: (&'a str, f64)) -> Self {
+        let (name, value) = t;
+        Self {
+            name: name.to_string(),
+            value
+        }
+    }
+}
+
 /// The training algorithm
 #[derive(Debug, Clone)]
 pub enum Algorithm {
