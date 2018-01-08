@@ -601,13 +601,14 @@ impl<'a> Tagger<'a> {
             }
             let labels = self.model.get_labels()?;
             // Run the Viterbi algorithm
-            let mut score: floatval_t = mem::uninitialized();
-            let mut paths = Vec::with_capacity(length as usize);
+            let mut score: floatval_t = 0.0;
+            let mut paths: Vec<libc::c_int> = Vec::with_capacity(length as usize);
             let ret = (*self.tagger).viterbi.map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score)).unwrap();
             if ret != 0 {
                 (*labels).release.map(|f| f(labels));
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
+            paths.set_len(length as usize);
             let mut yseq = Vec::with_capacity(length as usize);
             // Convert the Viterbi path to a label sequence
             for path in paths.into_iter() {
@@ -641,7 +642,7 @@ impl<'a> Tagger<'a> {
             // Obtain the dictionary interface representing the labels in the model.
             let labels = self.model.get_labels()?;
             // Convert string labels into label IDs.
-            let mut paths = Vec::with_capacity(length); 
+            let mut paths: Vec<libc::c_int> = Vec::with_capacity(length); 
             for y in yseq.iter() {
                 let y_cstr = CString::new(&y[..]).unwrap();
                 let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();

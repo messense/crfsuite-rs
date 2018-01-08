@@ -1,11 +1,30 @@
 extern crate crfsuite;
 
-use crfsuite::Model;
+use crfsuite::{Model, Attribute};
 
 #[test]
 fn test_open_model() {
     let model = Model::from_file("tests/model.crfsuite").unwrap();
     let tagger = model.tagger().unwrap();
-    let labels = tagger.labels().unwrap();
-    println!("{:?}", labels);
+    let _labels = tagger.labels().unwrap();
+}
+
+#[test]
+fn test_tag() {
+    let model = Model::from_file("tests/model.crfsuite").unwrap();
+    let mut tagger = model.tagger().unwrap();
+    let xseq = vec![
+        vec![Attribute::new("walk", 1.0), Attribute::new("shop", 0.5)],
+        vec![Attribute::new("walk", 1.0)],
+        vec![Attribute::new("walk", 1.0), Attribute::new("clean", 0.5)],
+        vec![Attribute::new("shop", 0.5), Attribute::new("clean", 0.5)],
+        vec![Attribute::new("walk", 0.5), Attribute::new("clean", 1.0)],
+        vec![Attribute::new("clean", 1.0), Attribute::new("shop", 0.1)],
+        vec![Attribute::new("walk", 1.0), Attribute::new("shop", 0.5)],
+        vec![],
+        vec![Attribute::new("clean", 1.0)],
+    ];
+    let yseq = ["sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy"];
+    let res = tagger.tag(&xseq).unwrap();
+    assert_eq!(res, yseq);
 }
