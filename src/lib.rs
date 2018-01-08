@@ -120,21 +120,11 @@ impl Attribute {
     }
 }
 
-impl From<(String, f64)> for Attribute {
-    fn from(t: (String, f64)) -> Self {
+impl<T: Into<String>> From<(T, f64)> for Attribute {
+    fn from(t: (T, f64)) -> Self {
         let (name, value) = t;
         Self {
-            name,
-            value
-        }
-    }
-}
-
-impl<'a> From<(&'a str, f64)> for Attribute {
-    fn from(t: (&'a str, f64)) -> Self {
-        let (name, value) = t;
-        Self {
-            name: name.to_string(),
+            name: name.into(),
             value
         }
     }
