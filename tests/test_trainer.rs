@@ -118,3 +118,24 @@ fn test_get_invalid_argument() {
         _ => panic!("test fail")
     }
 }
+
+#[test]
+fn test_set() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    let before = trainer.get("c2").unwrap();
+    trainer.set("c2", "0.5").unwrap();
+    let after = trainer.get("c2").unwrap();
+    assert!(before != after);
+}
+
+#[test]
+fn test_set_invalid_argument() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    let ret = trainer.set("foo", "1.0");
+    match ret.err().unwrap() {
+        CrfError::ParamNotFound(_) => {},
+        _ => panic!("test fail")
+    }
+}
