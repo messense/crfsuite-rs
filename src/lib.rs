@@ -175,6 +175,21 @@ impl fmt::Display for Algorithm {
     }
 }
 
+impl ::std::str::FromStr for Algorithm {
+    type Err = CrfError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        match s {
+            "lbfgs" => Ok(Algorithm::LBFGS),
+            "l2sgd" => Ok(Algorithm::L2SGD),
+            "ap" | "averaged-perceptron" => Ok(Algorithm::AP),
+            "pa" | "passive-aggressive" => Ok(Algorithm::PA),
+            "arow" => Ok(Algorithm::AROW),
+            _ => Err(CrfError::InvalidArgument(s.to_string())),
+        }
+    }
+}
+
 /// The graphical model
 #[derive(Debug, Clone)]
 pub enum GraphicalModel {
@@ -190,6 +205,17 @@ impl fmt::Display for GraphicalModel {
             GraphicalModel::CRF1D => "crf1d",
         };
         write!(f, "{}", desc)
+    }
+}
+
+impl ::std::str::FromStr for GraphicalModel {
+    type Err = CrfError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        match s {
+            "1d" | "crf1d" => Ok(GraphicalModel::CRF1D),
+            _ => Err(CrfError::InvalidArgument(s.to_string())),
+        }
     }
 }
 
