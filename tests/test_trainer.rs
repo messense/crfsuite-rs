@@ -77,3 +77,26 @@ fn test_params() {
     assert!(!params.contains(&"c1".to_string()));
     assert!(params.contains(&"c2".to_string()));
 }
+
+#[test]
+fn test_help() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    let msg = trainer.help("c1").unwrap();
+    assert!(msg.contains("L1"));
+
+    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    let msg = trainer.help("c2").unwrap();
+    assert!(msg.contains("L2"));
+}
+
+#[test]
+fn test_help_invalid_argument() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    let ret = trainer.help("foo");
+    match ret.err().unwrap() {
+        CrfError::ParamNotFound(_) => {},
+        _ => panic!("test fail")
+    }
+}
