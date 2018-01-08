@@ -67,6 +67,8 @@ pub enum CrfError {
     ParamNotFound(String),
     AlgorithmNotSelected,
     EmptyData,
+    InvalidArgument(String),
+    ValueError(String),
 }
 
 impl error::Error for CrfError {
@@ -77,6 +79,8 @@ impl error::Error for CrfError {
             CrfError::ParamNotFound(_) => "Parameter not found",
             CrfError::AlgorithmNotSelected => "Trainer algorithm not selected",
             CrfError::EmptyData => "Trainer data is empty",
+            CrfError::InvalidArgument(_) => "Invalid argument",
+            CrfError::ValueError(_) => "Invalid value",
         }
     }
 }
@@ -89,6 +93,8 @@ impl fmt::Display for CrfError {
             CrfError::ParamNotFound(ref name) => write!(f, "Parameter {} not found", name),
             CrfError::AlgorithmNotSelected => write!(f, "The trainer is not initialized. Call Trainer::select before Trainer::train."),
             CrfError::EmptyData=> write!(f, "The data is empty. Call Trainer::append before Trainer::train."),
+            CrfError::InvalidArgument(ref err) => err.fmt(f),
+            CrfError::ValueError(ref err) => err.fmt(f),
         }
     }
 }
@@ -593,12 +599,50 @@ impl<'a> Tagger<'a> {
     }
 
     /// Compute the probability of the label sequence.
-    pub fn probability(&self, yseq: &[String]) -> f64 {
-        unimplemented!()
+    pub fn probability(&self, yseq: &[String]) -> Result<f64> {
+        let mut score: floatval_t = 0.0;
+        unsafe {
+            // Make sure that the current instance is not empty
+            let length = (*self.tagger).length.map(|f| f(self.tagger)).unwrap() as usize;
+            if length <= 0 {
+                return Ok(score);
+            }
+            // Make sure |y| == |x|
+            if length != yseq.len() {
+                return Err(CrfError::InvalidArgument(format!("The numbers of items and labels differ: |x| = {}, |y| = {}", length, yseq.len())));
+            }
+            // Obtain the dictionary interface representing the labels in the model.
+            let labels = self.model.get_labels()?;
+            // Convert string labels into label IDs.
+            let mut paths = Vec::with_capacity(length); 
+            for y in yseq.iter() {
+                let y_cstr = CString::new(&y[..]).unwrap();
+                let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
+                if l < 0 {
+                    (*labels).release.map(|f| f(labels));
+                    return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", &y)));
+                }
+                paths.push(l);
+            }
+            // Compute the score of the path.
+            let ret = (*self.tagger).score.map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score)).unwrap();
+            if ret != 0 {
+                (*labels).release.map(|f| f(labels));
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+            // Compute the partition factor.
+            let mut lognorm: floatval_t = 0.0;
+            let ret = (*self.tagger).lognorm.map(|f| f(self.tagger, &mut lognorm)).unwrap();
+            (*labels).release.map(|f| f(labels));
+            if ret != 0 {
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+            Ok((score - lognorm).exp())
+        }
     }
 
     /// Compute the marginal probability of the label.
-    pub fn marginal(&self, label: &str, position: u32) -> f64 {
+    pub fn marginal(&self, label: &str, position: u32) -> Result<f64> {
         unimplemented!()
     }
 }
