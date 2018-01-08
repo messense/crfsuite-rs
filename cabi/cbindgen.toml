@@ -1,0 +1,9 @@
+header = "/* c bindings to the pycrfsuite library */"
+include_guard = "PYCRFSUITE_H_INCLUDED"
+language = "C"
+
+[parse]
+expand = ["crfsuite-cabi"]
+
+[enum]
+rename_variants = "QualifiedScreamingSnakeCase"
