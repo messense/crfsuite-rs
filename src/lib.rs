@@ -372,6 +372,7 @@ impl Trainer {
                 (*pms).name.map(|f| f(pms, i, &mut name));
                 let c_str = CStr::from_ptr(name);
                 ret.push(c_str.to_string_lossy().into_owned());
+                (*pms).free.map(|f| f(pms, name));
             }
             ret
         }

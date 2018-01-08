@@ -62,3 +62,18 @@ fn test_clear_not_empty() {
     trainer.append(&xseq, &yseq, 0i32).unwrap();
     trainer.clear().unwrap();
 }
+
+#[test]
+fn test_params() {
+    let mut trainer = Trainer::new();
+    trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
+    let params = trainer.params();
+    assert!(params.contains(&"c1".to_string()));
+    assert!(params.contains(&"c2".to_string()));
+    assert!(params.contains(&"num_memories".to_string()));
+
+    trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
+    let params = trainer.params();
+    assert!(!params.contains(&"c1".to_string()));
+    assert!(params.contains(&"c2".to_string()));
+}
