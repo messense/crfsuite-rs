@@ -5,14 +5,22 @@ use std::{mem, ptr, fmt, error, slice};
 use std::ffi::{CStr, CString};
 use crfsuite_sys::*;
 
+/// Errors from crfsuite ffi functions
 #[derive(Debug, Clone, PartialEq)]
 pub enum CrfSuiteError {
+    /// Incompatible data
     Incompatible,
+    /// Internal error
     InternalLogic,
+    /// Not implemented
     NotImplemented,
+    /// Unsupported operation
     NotSupported,
+    /// Insufficient memory
     OutOfMemory,
+    /// Overflow
     Overflow,
+    /// Unknown error occurred
     Unknown
 }
 
@@ -62,12 +70,19 @@ impl From<libc::c_int> for CrfSuiteError {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum CrfError {
+    /// Errors from crfsuite ffi functions
     CrfSuiteError(CrfSuiteError),
+    /// Create instance error
     CreateInstanceError(String),
+    /// Parameter not found
     ParamNotFound(String),
+    /// Trainer algorithm not selected
     AlgorithmNotSelected,
+    /// Trainer data is empty
     EmptyData,
+    /// Invalid argument
     InvalidArgument(String),
+    /// Invalid value
     ValueError(String),
 }
 
@@ -104,7 +119,9 @@ pub type Result<T> = ::std::result::Result<T, CrfError>;
 /// Tuple of attribute and its value.
 #[derive(Debug)]
 pub struct Attribute {
+    /// Attribute name
     pub name: String,
+    /// Attribute value
     pub value: f64,
 }
 
