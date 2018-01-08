@@ -235,6 +235,7 @@ impl Trainer {
             let mut instance: crfsuite_instance_t = mem::uninitialized();
             crfsuite_instance_init_n(&mut instance, xseq_len as i32);
             let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
+            let crf_labels = slice::from_raw_parts_mut(instance.labels, instance.num_items as usize);
             for t in 0..xseq_len {
                 let items = &xseq[t];
                 let mut crf_item = &mut crf_items[t];
@@ -251,6 +252,7 @@ impl Trainer {
                 let y_value = yseq[t].as_ref();
                 let y_cstr = CString::new(y_value).unwrap();
                 let label = (*(*self.data).labels).get.map(|f| f((*self.data).labels, y_cstr.as_ptr())).unwrap();
+                crf_labels[t] = label;
             }
             instance.group = group;
             // Append the instance to the training set
