@@ -219,15 +219,16 @@ impl Trainer {
 
     fn init(&mut self) -> Result<()> {
         unsafe {
+            let interface = CString::new("dictionary").unwrap();
             if (*self.data).labels.is_null() {
-                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, mem::transmute(&mut (*self.data).attrs));
+                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, mem::transmute(&mut (*self.data).attrs));
                 // ret is c bool
                 if ret == 0 {
                     return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for attributes.".to_string()));
                 }
             }
             if (*self.data).labels.is_null() {
-                let ret = crfsuite_create_instance("dictionary".as_ptr() as *const _, mem::transmute(&mut (*self.data).labels));
+                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, mem::transmute(&mut (*self.data).labels));
                 // ret is c bool
                 if ret == 0 {
                     return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for labels.".to_string()));
@@ -258,6 +259,15 @@ impl Trainer {
     }
 
     /// Append an instance (item/label sequence) to the data set.
+    ///
+    /// ## Parameters
+    ///
+    /// `xseq`: a sequence of item features, The item sequence of the instance.
+    ///
+    /// `yseq`: a sequence of strings, The label sequence of the instance.
+    ///
+    /// `group`: The group number of the instance. Group numbers are used to select subset of data
+    /// for heldout evaluation.
     pub fn append<T: AsRef<str>>(&mut self, xseq: &[Item], yseq: &[T], group: i32) -> Result<()> {
         unsafe {
             if (*self.data).attrs.is_null() || (*self.data).labels.is_null() {
@@ -322,6 +332,15 @@ impl Trainer {
     ///
     /// This function starts the training algorithm with the data set given
     /// by `append()` function.
+    ///
+    /// ## Parameters
+    ///
+    /// `model`: The filename to which the trained model is stored
+    ///
+    /// `holdout`: The group number of holdout evaluation.
+    /// the instances with this group number will not be used
+    /// for training, but for holdout evaluation.
+    /// -1 meaning "use all instances for training".
     pub fn train(&mut self, model: &str, holdout: i32) -> Result<()> {
         if self.trainer.is_null() {
             return Err(CrfError::AlgorithmNotSelected);
