@@ -661,7 +661,7 @@ impl<'a> Tagger<'a> {
             // Obtain the dictionary interface representing the labels in the model.
             let labels = self.model.get_labels()?;
             // Convert string labels into label IDs.
-            let mut paths: Vec<libc::c_int> = Vec::with_capacity(length); 
+            let mut paths: Vec<libc::c_int> = Vec::with_capacity(length);
             for y in yseq.iter() {
                 let y_cstr = CString::new(&y[..]).unwrap();
                 let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
