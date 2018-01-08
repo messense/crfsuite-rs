@@ -245,11 +245,11 @@ impl Trainer {
         }
         unsafe {
             if !(*self.data).attrs.is_null() {
-                (*(*self.data).attrs).release.map(|release| release((*self.data).attrs));
+                (*(*self.data).attrs).release.map(|release| release((*self.data).attrs)).unwrap();
                 (*self.data).attrs = ptr::null_mut();
             }
             if !(*self.data).labels.is_null() {
-                (*(*self.data).labels).release.map(|release| release((*self.data).labels));
+                (*(*self.data).labels).release.map(|release| release((*self.data).labels)).unwrap();
                 (*self.data).labels = ptr::null_mut();
             }
             crfsuite_data_finish(self.data);
@@ -311,7 +311,7 @@ impl Trainer {
         unsafe {
             // Release the trainer if it is already initialzed
             if !self.trainer.is_null() {
-                (*self.trainer).release.map(|f| f(self.trainer));
+                (*self.trainer).release.map(|f| f(self.trainer)).unwrap();
                 self.trainer = ptr::null_mut();
             }
             let mut tid = String::from("train/");
@@ -369,10 +369,10 @@ impl Trainer {
             let mut ret = Vec::with_capacity(n as usize);
             for i in 0..n {
                 let mut name: *mut libc::c_char = ptr::null_mut();
-                (*pms).name.map(|f| f(pms, i, &mut name));
+                (*pms).name.map(|f| f(pms, i, &mut name)).unwrap();
                 let c_str = CStr::from_ptr(name);
                 ret.push(c_str.to_string_lossy().into_owned());
-                (*pms).free.map(|f| f(pms, name));
+                (*pms).free.map(|f| f(pms, name)).unwrap();
             }
             ret
         }
@@ -388,10 +388,10 @@ impl Trainer {
         unsafe {
             let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
             if (*pms).set.map(|f| f(pms, name_cstr.as_ptr(), value_cstr.as_ptr())).unwrap() != 0 {
-                (*pms).release.map(|f| f(pms));
+                (*pms).release.map(|f| f(pms)).unwrap();
                 return Err(CrfError::ParamNotFound(name.to_string()));
             }
-            (*pms).release.map(|f| f(pms));
+            (*pms).release.map(|f| f(pms)).unwrap();
         }
         Ok(())
     }
@@ -407,12 +407,12 @@ impl Trainer {
             let mut value_ptr: *mut libc::c_char = ptr::null_mut();
             let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
             if (*pms).get.map(|f| f(pms, name_cstr.as_ptr(), &mut value_ptr)).unwrap() != 0 {
-                (*pms).release.map(|f| f(pms));
+                (*pms).release.map(|f| f(pms)).unwrap();
                 return Err(CrfError::ParamNotFound(name.to_string()));
             }
             value = CStr::from_ptr(value_ptr).to_string_lossy().into_owned();
-            (*pms).free.map(|f| f(pms, value_ptr));
-            (*pms).release.map(|f| f(pms));
+            (*pms).free.map(|f| f(pms, value_ptr)).unwrap();
+            (*pms).release.map(|f| f(pms)).unwrap();
         }
         Ok(value)
     }
@@ -429,12 +429,12 @@ impl Trainer {
             let mut value_ptr: *mut libc::c_char = ptr::null_mut();
             let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
             if (*pms).help.map(|f| f(pms, name_cstr.as_ptr(), ptr::null_mut(), &mut value_ptr)).unwrap() != 0 {
-                (*pms).release.map(|f| f(pms));
+                (*pms).release.map(|f| f(pms)).unwrap();
                 return Err(CrfError::ParamNotFound(name.to_string()));
             }
             value = CStr::from_ptr(value_ptr).to_string_lossy().into_owned();
-            (*pms).free.map(|f| f(pms, value_ptr));
-            (*pms).release.map(|f| f(pms));
+            (*pms).free.map(|f| f(pms, value_ptr)).unwrap();
+            (*pms).release.map(|f| f(pms)).unwrap();
         }
         Ok(value)
     }
@@ -494,7 +494,7 @@ impl Model {
     fn close(&mut self) {
         unsafe {
             if !self.0.is_null() {
-                (*self.0).release.map(|f| f(self.0));
+                (*self.0).release.map(|f| f(self.0)).unwrap();
             }
         }
     }
@@ -543,7 +543,7 @@ unsafe impl Sync for Model {}
 
 impl<'a> Drop for Tagger<'a> {
     fn drop(&mut self) {
-        unsafe { (*self.tagger).release.map(|f| f(self.tagger)); }
+        unsafe { (*self.tagger).release.map(|f| f(self.tagger)).unwrap(); }
     }
 }
 
@@ -558,13 +558,13 @@ impl<'a> Tagger<'a> {
                 let mut label: *mut libc::c_char = ptr::null_mut();
                 let ret = (*labels).to_string.map(|f| f(labels, i, mem::transmute(&mut label))).unwrap();
                 if ret != 0 {
-                    (*labels).release.map(|f| f(labels));
+                    (*labels).release.map(|f| f(labels)).unwrap();
                     return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
                 }
                 lseq.push(CStr::from_ptr(label).to_string_lossy().into_owned());
-                (*labels).free.map(|f| f(labels, label));
+                (*labels).free.map(|f| f(labels, label)).unwrap();
             }
-            (*labels).release.map(|f| f(labels));
+            (*labels).release.map(|f| f(labels)).unwrap();
             Ok(lseq)
         }
     }
@@ -602,11 +602,11 @@ impl<'a> Tagger<'a> {
             // Set the instance to the tagger
             let ret = (*self.tagger).set.map(|f| f(self.tagger, &mut instance)).unwrap();
             if ret != 0 {
-                (*attrs).release.map(|f| f(attrs));
+                (*attrs).release.map(|f| f(attrs)).unwrap();
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
             crfsuite_instance_finish(&mut instance);
-            (*attrs).release.map(|f| f(attrs));
+            (*attrs).release.map(|f| f(attrs)).unwrap();
         }
         Ok(())
     }
@@ -625,7 +625,7 @@ impl<'a> Tagger<'a> {
             let mut paths: Vec<libc::c_int> = Vec::with_capacity(length as usize);
             let ret = (*self.tagger).viterbi.map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score)).unwrap();
             if ret != 0 {
-                (*labels).release.map(|f| f(labels));
+                (*labels).release.map(|f| f(labels)).unwrap();
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
             paths.set_len(length as usize);
@@ -635,13 +635,13 @@ impl<'a> Tagger<'a> {
                 let mut label: *mut libc::c_char = ptr::null_mut();
                 let ret = (*labels).to_string.map(|f| f(labels, path, mem::transmute(&mut label))).unwrap();
                 if ret != 0 {
-                    (*labels).release.map(|f| f(labels));
+                    (*labels).release.map(|f| f(labels)).unwrap();
                     return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
                 }
                 yseq.push(CStr::from_ptr(label).to_string_lossy().into_owned());
-                (*labels).free.map(|f| f(labels, label));
+                (*labels).free.map(|f| f(labels, label)).unwrap();
             }
-            (*labels).release.map(|f| f(labels));
+            (*labels).release.map(|f| f(labels)).unwrap();
             Ok(yseq)
         }
     }
@@ -667,7 +667,7 @@ impl<'a> Tagger<'a> {
                 let y_cstr = CString::new(&y[..]).unwrap();
                 let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
                 if l < 0 {
-                    (*labels).release.map(|f| f(labels));
+                    (*labels).release.map(|f| f(labels)).unwrap();
                     return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", &y)));
                 }
                 paths.push(l);
@@ -675,13 +675,13 @@ impl<'a> Tagger<'a> {
             // Compute the score of the path.
             let ret = (*self.tagger).score.map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score)).unwrap();
             if ret != 0 {
-                (*labels).release.map(|f| f(labels));
+                (*labels).release.map(|f| f(labels)).unwrap();
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
             // Compute the partition factor.
             let mut lognorm: floatval_t = 0.0;
             let ret = (*self.tagger).lognorm.map(|f| f(self.tagger, &mut lognorm)).unwrap();
-            (*labels).release.map(|f| f(labels));
+            (*labels).release.map(|f| f(labels)).unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
@@ -708,12 +708,12 @@ impl<'a> Tagger<'a> {
             let y_cstr = CString::new(label).unwrap();
             let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
             if l < 0 {
-                (*labels).release.map(|f| f(labels));
+                (*labels).release.map(|f| f(labels)).unwrap();
                 return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", label)));
             }
             // Compute the score of the path.
             let ret = (*self.tagger).marginal_point.map(|f| f(self.tagger, l, position, &mut prob)).unwrap();
-            (*labels).release.map(|f| f(labels));
+            (*labels).release.map(|f| f(labels)).unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
