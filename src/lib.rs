@@ -647,7 +647,7 @@ impl<'a> Tagger<'a> {
     }
 
     /// Compute the probability of the label sequence.
-    pub fn probability(&self, yseq: &[String]) -> Result<f64> {
+    pub fn probability<T: AsRef<str>>(&self, yseq: &[T]) -> Result<f64> {
         let mut score: floatval_t = 0.0;
         unsafe {
             // Make sure that the current instance is not empty
@@ -664,11 +664,11 @@ impl<'a> Tagger<'a> {
             // Convert string labels into label IDs.
             let mut paths: Vec<libc::c_int> = Vec::with_capacity(length);
             for y in yseq.iter() {
-                let y_cstr = CString::new(&y[..]).unwrap();
+                let y_cstr = CString::new(y.as_ref()).unwrap();
                 let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
                 if l < 0 {
                     (*labels).release.map(|f| f(labels)).unwrap();
-                    return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", &y)));
+                    return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", y.as_ref())));
                 }
                 paths.push(l);
             }

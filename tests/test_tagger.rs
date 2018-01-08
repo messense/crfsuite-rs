@@ -27,4 +27,7 @@ fn test_tag() {
     let yseq = ["sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy"];
     let res = tagger.tag(&xseq).unwrap();
     assert_eq!(res, yseq);
+
+    tagger.probability(&yseq).unwrap();
+    tagger.marginal("sunny", 1i32).unwrap();
 }
