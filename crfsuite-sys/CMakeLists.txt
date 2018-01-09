@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 2.6)
-project(crfsuite LANGUAGES C)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+project(crfsuite)
+enable_language(C)
 
 include_directories(${PROJECT_SOURCE_DIR}/liblbfgs/include)
 include_directories(${PROJECT_SOURCE_DIR}/crfsuite/include)
