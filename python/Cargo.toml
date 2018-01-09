@@ -1,0 +1,13 @@
+[package]
+name = "pycrfsuite"
+version = "0.1.0"
+authors = ["Messense Lv <messense@icloud.com>"]
+
+[dependencies]
+# crfsuite = { path = ".."}
+crfsuite = "0.1"
+pyo3 = "0.2"
+
+[lib]
+name = "pycrfsuite"
+crate-type = ["cdylib"]
