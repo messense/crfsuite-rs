@@ -4,4 +4,6 @@
 
 extern crate libc;
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+mod bindings;
+
+pub use self::bindings::*;
