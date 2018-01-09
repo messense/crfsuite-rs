@@ -602,7 +602,6 @@ extern "C" {
     /// \c 0 otherwise. Note that this is inconsistent with the
     /// other CRFsuite API calls.
 
-    #[link_name = "\u{1}_crfsuite_create_instance"]
     pub fn crfsuite_create_instance(
         iid: *const libc::c_char,
         ptr: *mut *mut libc::c_void,
@@ -618,7 +617,6 @@ extern "C" {
     /// @return int         \c 0 if this function creates an object successfully,
     /// \c 1 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_create_instance_from_file"]
     pub fn crfsuite_create_instance_from_file(
         filename: *const libc::c_char,
         ptr: *mut *mut libc::c_void,
@@ -636,7 +634,6 @@ extern "C" {
     /// @return int         \c 0 if this function creates an object successfully,
     /// \c 1 otherwise
 
-    #[link_name = "\u{1}_crfsuite_create_instance_from_memory"]
     pub fn crfsuite_create_instance_from_memory(
         data: *const libc::c_void,
         size: usize,
@@ -659,7 +656,6 @@ extern "C" {
     /// @return int         \c 0 if this function creates an object successfully,
     /// \c 1 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_create_tagger"]
     pub fn crfsuite_create_tagger(
         filename: *const libc::c_char,
         ptr_tagger: *mut *mut crfsuite_tagger_t,
@@ -672,7 +668,6 @@ extern "C" {
     /// Initialize an attribute structure.
     /// @param  attr        The pointer to crfsuite_attribute_t.
 
-    #[link_name = "\u{1}_crfsuite_attribute_init"]
     pub fn crfsuite_attribute_init(attr: *mut crfsuite_attribute_t);
 }
 extern "C" {
@@ -682,7 +677,6 @@ extern "C" {
     /// @param  aid         The attribute identifier.
     /// @param  value       The attribute value.
 
-    #[link_name = "\u{1}_crfsuite_attribute_set"]
     pub fn crfsuite_attribute_set(
         attr: *mut crfsuite_attribute_t,
         aid: libc::c_int,
@@ -695,7 +689,6 @@ extern "C" {
     /// @param  dst         The pointer to the destination.
     /// @param  src         The pointer to the source.
 
-    #[link_name = "\u{1}_crfsuite_attribute_copy"]
     pub fn crfsuite_attribute_copy(
         dst: *mut crfsuite_attribute_t,
         src: *const crfsuite_attribute_t,
@@ -707,7 +700,6 @@ extern "C" {
     /// @param  x           The pointer to an attribute structure.
     /// @param  y           The pointer to another attribute structure.
 
-    #[link_name = "\u{1}_crfsuite_attribute_swap"]
     pub fn crfsuite_attribute_swap(x: *mut crfsuite_attribute_t, y: *mut crfsuite_attribute_t);
 }
 extern "C" {
@@ -715,7 +707,6 @@ extern "C" {
     /// Initialize an item structure.
     /// @param  item        The pointer to crfsuite_item_t.
 
-    #[link_name = "\u{1}_crfsuite_item_init"]
     pub fn crfsuite_item_init(item: *mut crfsuite_item_t);
 }
 extern "C" {
@@ -724,7 +715,6 @@ extern "C" {
     /// @param  item        The pointer to crfsuite_item_t.
     /// @param  num_attributes  The number of attributes.
 
-    #[link_name = "\u{1}_crfsuite_item_init_n"]
     pub fn crfsuite_item_init_n(item: *mut crfsuite_item_t, num_attributes: libc::c_int);
 }
 extern "C" {
@@ -732,7 +722,6 @@ extern "C" {
     /// Uninitialize an item structure.
     /// @param  item        The pointer to crfsuite_item_t.
 
-    #[link_name = "\u{1}_crfsuite_item_finish"]
     pub fn crfsuite_item_finish(item: *mut crfsuite_item_t);
 }
 extern "C" {
@@ -741,7 +730,6 @@ extern "C" {
     /// @param  dst         The pointer to the destination.
     /// @param  src         The pointer to the source.
 
-    #[link_name = "\u{1}_crfsuite_item_copy"]
     pub fn crfsuite_item_copy(dst: *mut crfsuite_item_t, src: *const crfsuite_item_t);
 }
 extern "C" {
@@ -750,7 +738,6 @@ extern "C" {
     /// @param  x           The pointer to an item structure.
     /// @param  y           The pointer to another item structure.
 
-    #[link_name = "\u{1}_crfsuite_item_swap"]
     pub fn crfsuite_item_swap(x: *mut crfsuite_item_t, y: *mut crfsuite_item_t);
 }
 extern "C" {
@@ -760,7 +747,6 @@ extern "C" {
     /// @param  attr        The attribute to be added to the item.
     /// @return int         \c 0 if successful, \c -1 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_item_append_attribute"]
     pub fn crfsuite_item_append_attribute(
         item: *mut crfsuite_item_t,
         attr: *const crfsuite_attribute_t,
@@ -772,7 +758,6 @@ extern "C" {
     /// @param  item        The pointer to crfsuite_item_t.
     /// @return int         \c 1 if the item has no attribute, \c 0 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_item_empty"]
     pub fn crfsuite_item_empty(item: *mut crfsuite_item_t) -> libc::c_int;
 }
 extern "C" {
@@ -780,7 +765,6 @@ extern "C" {
     /// Initialize an instance structure.
     /// @param  seq         The pointer to crfsuite_instance_t.
 
-    #[link_name = "\u{1}_crfsuite_instance_init"]
     pub fn crfsuite_instance_init(seq: *mut crfsuite_instance_t);
 }
 extern "C" {
@@ -789,7 +773,6 @@ extern "C" {
     /// @param  seq         The pointer to crfsuite_instance_t.
     /// @param  num_items   The number of items.
 
-    #[link_name = "\u{1}_crfsuite_instance_init_n"]
     pub fn crfsuite_instance_init_n(seq: *mut crfsuite_instance_t, num_items: libc::c_int);
 }
 extern "C" {
@@ -797,7 +780,6 @@ extern "C" {
     /// Uninitialize an instance structure.
     /// @param  seq         The pointer to crfsuite_instance_t.
 
-    #[link_name = "\u{1}_crfsuite_instance_finish"]
     pub fn crfsuite_instance_finish(seq: *mut crfsuite_instance_t);
 }
 extern "C" {
@@ -806,7 +788,6 @@ extern "C" {
     /// @param  dst         The pointer to the destination.
     /// @param  src         The pointer to the source.
 
-    #[link_name = "\u{1}_crfsuite_instance_copy"]
     pub fn crfsuite_instance_copy(dst: *mut crfsuite_instance_t, src: *const crfsuite_instance_t);
 }
 extern "C" {
@@ -815,7 +796,6 @@ extern "C" {
     /// @param  x           The pointer to an instance structure.
     /// @param  y           The pointer to another instance structure.
 
-    #[link_name = "\u{1}_crfsuite_instance_swap"]
     pub fn crfsuite_instance_swap(x: *mut crfsuite_instance_t, y: *mut crfsuite_instance_t);
 }
 extern "C" {
@@ -826,7 +806,6 @@ extern "C" {
     /// @param  label       The label to be added to the instance.
     /// @return int         \c 0 if successful, \c -1 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_instance_append"]
     pub fn crfsuite_instance_append(
         seq: *mut crfsuite_instance_t,
         item: *const crfsuite_item_t,
@@ -839,7 +818,6 @@ extern "C" {
     /// @param  seq         The pointer to crfsuite_instance_t.
     /// @return int         \c 1 if the instance has no attribute, \c 0 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_instance_empty"]
     pub fn crfsuite_instance_empty(seq: *mut crfsuite_instance_t) -> libc::c_int;
 }
 extern "C" {
@@ -847,7 +825,6 @@ extern "C" {
     /// Initialize a dataset structure.
     /// @param  data        The pointer to crfsuite_data_t.
 
-    #[link_name = "\u{1}_crfsuite_data_init"]
     pub fn crfsuite_data_init(data: *mut crfsuite_data_t);
 }
 extern "C" {
@@ -856,7 +833,6 @@ extern "C" {
     /// @param  data        The pointer to crfsuite_data_t.
     /// @param  n           The number of instances.
 
-    #[link_name = "\u{1}_crfsuite_data_init_n"]
     pub fn crfsuite_data_init_n(data: *mut crfsuite_data_t, n: libc::c_int);
 }
 extern "C" {
@@ -864,7 +840,6 @@ extern "C" {
     /// Uninitialize a dataset structure.
     /// @param  data        The pointer to crfsuite_data_t.
 
-    #[link_name = "\u{1}_crfsuite_data_finish"]
     pub fn crfsuite_data_finish(data: *mut crfsuite_data_t);
 }
 extern "C" {
@@ -873,7 +848,6 @@ extern "C" {
     /// @param  dst         The pointer to the destination.
     /// @param  src         The pointer to the source.
 
-    #[link_name = "\u{1}_crfsuite_data_copy"]
     pub fn crfsuite_data_copy(dst: *mut crfsuite_data_t, src: *const crfsuite_data_t);
 }
 extern "C" {
@@ -882,7 +856,6 @@ extern "C" {
     /// @param  x           The pointer to a dataset structure.
     /// @param  y           The pointer to another dataset structure.
 
-    #[link_name = "\u{1}_crfsuite_data_swap"]
     pub fn crfsuite_data_swap(x: *mut crfsuite_data_t, y: *mut crfsuite_data_t);
 }
 extern "C" {
@@ -892,7 +865,6 @@ extern "C" {
     /// @param  inst        The instance to be added to the dataset.
     /// @return int         \c 0 if successful, \c -1 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_data_append"]
     pub fn crfsuite_data_append(
         data: *mut crfsuite_data_t,
         inst: *const crfsuite_instance_t,
@@ -905,7 +877,6 @@ extern "C" {
     /// @return int         The maximum number of items of the instances in the
     /// dataset.
 
-    #[link_name = "\u{1}_crfsuite_data_maxlength"]
     pub fn crfsuite_data_maxlength(data: *mut crfsuite_data_t) -> libc::c_int;
 }
 extern "C" {
@@ -914,7 +885,6 @@ extern "C" {
     /// @param  data        The pointer to crfsuite_data_t.
     /// @return int         The total number of items in the dataset.
 
-    #[link_name = "\u{1}_crfsuite_data_totalitems"]
     pub fn crfsuite_data_totalitems(data: *mut crfsuite_data_t) -> libc::c_int;
 }
 extern "C" {
@@ -923,7 +893,6 @@ extern "C" {
     /// @param  eval        The pointer to crfsuite_evaluation_t.
     /// @param  n           The number of labels in the dataset.
 
-    #[link_name = "\u{1}_crfsuite_evaluation_init"]
     pub fn crfsuite_evaluation_init(eval: *mut crfsuite_evaluation_t, n: libc::c_int);
 }
 extern "C" {
@@ -931,7 +900,6 @@ extern "C" {
     /// Uninitialize an evaluation structure.
     /// @param  eval        The pointer to crfsuite_evaluation_t.
 
-    #[link_name = "\u{1}_crfsuite_evaluation_finish"]
     pub fn crfsuite_evaluation_finish(eval: *mut crfsuite_evaluation_t);
 }
 extern "C" {
@@ -939,7 +907,6 @@ extern "C" {
     /// Reset an evaluation structure.
     /// @param  eval        The pointer to crfsuite_evaluation_t.
 
-    #[link_name = "\u{1}_crfsuite_evaluation_clear"]
     pub fn crfsuite_evaluation_clear(eval: *mut crfsuite_evaluation_t);
 }
 extern "C" {
@@ -951,7 +918,6 @@ extern "C" {
     /// @param  T           The length of the label sequence.
     /// @return int         \c 0 if succeeded, \c 1 otherwise.
 
-    #[link_name = "\u{1}_crfsuite_evaluation_accmulate"]
     pub fn crfsuite_evaluation_accmulate(
         eval: *mut crfsuite_evaluation_t,
         reference: *const libc::c_int,
@@ -964,7 +930,6 @@ extern "C" {
     /// Finalize the evaluation result.
     /// @param  eval        The pointer to crfsuite_evaluation_t.
 
-    #[link_name = "\u{1}_crfsuite_evaluation_finalize"]
     pub fn crfsuite_evaluation_finalize(eval: *mut crfsuite_evaluation_t);
 }
 extern "C" {
@@ -976,7 +941,6 @@ extern "C" {
     /// @param  user        The pointer to the user data that is forwarded to the
     /// callback function.
 
-    #[link_name = "\u{1}_crfsuite_evaluation_output"]
     pub fn crfsuite_evaluation_output(
         eval: *mut crfsuite_evaluation_t,
         labels: *mut crfsuite_dictionary_t,
@@ -990,7 +954,6 @@ extern "C" {
     /// @param  count       The pointer to the integer variable.
     /// @return             The value after this increment.
 
-    #[link_name = "\u{1}_crfsuite_interlocked_increment"]
     pub fn crfsuite_interlocked_increment(count: *mut libc::c_int) -> libc::c_int;
 }
 extern "C" {
@@ -999,7 +962,6 @@ extern "C" {
     /// @param  count       The pointer to the integer variable.
     /// @return             The value after this decrement.
 
-    #[link_name = "\u{1}_crfsuite_interlocked_decrement"]
     pub fn crfsuite_interlocked_decrement(count: *mut libc::c_int) -> libc::c_int;
 }
 
