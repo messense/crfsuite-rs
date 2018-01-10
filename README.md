@@ -1,6 +1,7 @@
 # crfsuite-rs
 
 [![Build Status](https://travis-ci.org/bosondata/crfsuite-rs.svg?branch=master)](https://travis-ci.org/bosondata/crfsuite-rs)
+[![codecov](https://codecov.io/gh/bosondata/crfsuite-rs/branch/master/graph/badge.svg)](https://codecov.io/gh/bosondata/crfsuite-rs)
 [![Crates.io](https://img.shields.io/crates/v/crfsuite.svg)](https://crates.io/crates/crfsuite)
 [![docs.rs](https://docs.rs/crfsuite/badge.svg)](https://docs.rs/crfsuite/)
 
