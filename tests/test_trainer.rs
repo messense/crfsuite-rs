@@ -3,6 +3,13 @@ extern crate crfsuite;
 use crfsuite::{Trainer, Algorithm, GraphicalModel, CrfError, Attribute, Model};
 
 #[test]
+fn test_trainer_default_impl() {
+    let mut trainer = Trainer::default();
+    let ret = trainer.train("tests/test.crfsuite", 1i32);
+    assert_eq!(ret.err(), Some(CrfError::AlgorithmNotSelected));
+}
+
+#[test]
 fn test_trainer_train_uninitialized() {
     let mut trainer = Trainer::new();
     let ret = trainer.train("tests/test.crfsuite", 1i32);

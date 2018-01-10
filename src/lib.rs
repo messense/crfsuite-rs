@@ -117,7 +117,7 @@ impl fmt::Display for CrfError {
 pub type Result<T> = ::std::result::Result<T, CrfError>;
 
 /// Tuple of attribute and its value.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Attribute {
     /// Attribute name
     pub name: String,
@@ -148,7 +148,7 @@ impl<T: Into<String>> From<(T, f64)> for Attribute {
 }
 
 /// The training algorithm
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Algorithm {
     /// Gradient descent using the L-BFGS method
     LBFGS,
@@ -191,7 +191,7 @@ impl ::std::str::FromStr for Algorithm {
 }
 
 /// The graphical model
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GraphicalModel {
     /// The 1st-order Markov CRF with state and transition features (dyad features).
     /// State features are conditioned on combinations of attributes and labels,
@@ -751,5 +751,46 @@ impl<'a> Tagger<'a> {
             }
             Ok(prob)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Algorithm, GraphicalModel, Result};
+
+    #[test]
+    fn test_str_to_algorithm_enum() {
+        let algo: Algorithm = "lbfgs".parse().unwrap();
+        assert_eq!(algo, Algorithm::LBFGS);
+
+        let algo: Algorithm = "l2sgd".parse().unwrap();
+        assert_eq!(algo, Algorithm::L2SGD);
+
+        let algo: Algorithm = "ap".parse().unwrap();
+        assert_eq!(algo, Algorithm::AP);
+        let algo: Algorithm = "averaged-perceptron".parse().unwrap();
+        assert_eq!(algo, Algorithm::AP);
+
+        let algo: Algorithm = "pa".parse().unwrap();
+        assert_eq!(algo, Algorithm::PA);
+        let algo: Algorithm = "passive-aggressive".parse().unwrap();
+        assert_eq!(algo, Algorithm::PA);
+
+        let algo: Algorithm = "arow".parse().unwrap();
+        assert_eq!(algo, Algorithm::AROW);
+
+        let algo: Result<Algorithm> = "foo".parse();
+        assert!(algo.is_err());
+    }
+
+    #[test]
+    fn test_str_to_graphical_model_enum() {
+        let model: GraphicalModel = "1d".parse().unwrap();
+        assert_eq!(model, GraphicalModel::CRF1D);
+        let model: GraphicalModel = "crf1d".parse().unwrap();
+        assert_eq!(model, GraphicalModel::CRF1D);
+
+        let model: Result<GraphicalModel> = "foo".parse();
+        assert!(model.is_err());
     }
 }
