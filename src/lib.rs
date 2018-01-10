@@ -480,7 +480,8 @@ impl Drop for Trainer {
                 self.data = ptr::null_mut();
             }
             if !self.trainer.is_null() {
-                // FIXME
+                (*self.trainer).release.map(|f| f(self.trainer)).unwrap();
+                self.trainer = ptr::null_mut();
             }
         }
     }
