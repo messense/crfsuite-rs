@@ -756,7 +756,7 @@ impl<'a> Tagger<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Algorithm, GraphicalModel, Result};
+    use super::{Algorithm, GraphicalModel, Result, Attribute};
 
     #[test]
     fn test_str_to_algorithm_enum() {
@@ -784,6 +784,15 @@ mod tests {
     }
 
     #[test]
+    fn test_algorithm_enum_to_str() {
+        assert_eq!("lbfgs", &Algorithm::LBFGS.to_string());
+        assert_eq!("l2sgd", &Algorithm::L2SGD.to_string());
+        assert_eq!("averaged-perceptron", &Algorithm::AP.to_string());
+        assert_eq!("passive-aggressive", &Algorithm::PA.to_string());
+        assert_eq!("arow", &Algorithm::AROW.to_string());
+    }
+
+    #[test]
     fn test_str_to_graphical_model_enum() {
         let model: GraphicalModel = "1d".parse().unwrap();
         assert_eq!(model, GraphicalModel::CRF1D);
@@ -792,5 +801,11 @@ mod tests {
 
         let model: Result<GraphicalModel> = "foo".parse();
         assert!(model.is_err());
+    }
+
+    #[test]
+    fn test_attribute() {
+        Attribute::new("foo", 1.0);
+        Attribute::from(("foo", 1.0));
     }
 }
