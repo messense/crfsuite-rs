@@ -1,6 +1,6 @@
 [package]
 name = "crfsuite"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Messense Lv <messense@icloud.com>"]
 description = "Safe wrapper of crfsuite"
 license = "MIT"
@@ -12,7 +12,7 @@ exclude = [
 ]
 
 [dependencies]
-libc = "0.2.35"
+libc = "0.2"
 crfsuite-sys = { path = "crfsuite-sys", version = "0.1" }
 
 [badges]
