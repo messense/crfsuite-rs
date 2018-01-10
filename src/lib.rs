@@ -489,9 +489,7 @@ impl Drop for Trainer {
 
 /// The model
 #[derive(Debug)]
-pub struct Model {
-    inner: *mut crfsuite_model_t
-}
+pub struct Model(*mut crfsuite_model_t);
 
 /// The tagger
 /// provides the functionality for predicting label sequences for input sequences using a model.
@@ -503,9 +501,7 @@ pub struct Tagger<'a> {
 
 impl Model {
     fn new() -> Self {
-        Model {
-            inner: ptr::null_mut()
-        }
+        Model(ptr::null_mut())
     }
 
     /// Open a model file
@@ -519,7 +515,7 @@ impl Model {
     fn open(&mut self, name: &str) -> Result<()> {
         let name_cstr = CString::new(name).unwrap();
         unsafe {
-            let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), &mut self.inner as *mut *mut _ as *mut *mut _);
+            let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), &mut self.0 as *mut *mut _ as *mut *mut _);
             if ret != 0 {
                 return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
             }
@@ -530,8 +526,8 @@ impl Model {
     /// Close the model
     fn close(&mut self) {
         unsafe {
-            if !self.inner.is_null() {
-                (*self.inner).release.map(|f| f(self.inner)).unwrap();
+            if !self.0.is_null() {
+                (*self.0).release.map(|f| f(self.0)).unwrap();
             }
         }
     }
@@ -539,7 +535,7 @@ impl Model {
     pub fn tagger(&self) -> Result<Tagger> {
         unsafe {
             let mut tagger = ptr::null_mut();
-            let ret = (*self.inner).get_tagger.map(|f| f(self.inner, &mut tagger)).unwrap();
+            let ret = (*self.0).get_tagger.map(|f| f(self.0, &mut tagger)).unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
@@ -552,7 +548,7 @@ impl Model {
 
     unsafe fn get_attrs(&self) -> Result<*mut crfsuite_dictionary_t> {
         let mut attrs: *mut crfsuite_dictionary_t = ptr::null_mut();
-        let ret = (*self.inner).get_attrs.map(|f| f(self.inner, &mut attrs)).unwrap();
+        let ret = (*self.0).get_attrs.map(|f| f(self.0, &mut attrs)).unwrap();
         if ret != 0 {
             return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
         }
@@ -561,7 +557,7 @@ impl Model {
 
     unsafe fn get_labels(&self) -> Result<*mut crfsuite_dictionary_t> {
         let mut labels: *mut crfsuite_dictionary_t = ptr::null_mut();
-        let ret = (*self.inner).get_labels.map(|f| f(self.inner, &mut labels)).unwrap();
+        let ret = (*self.0).get_labels.map(|f| f(self.0, &mut labels)).unwrap();
         if ret != 0 {
             return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
         }
