@@ -8,7 +8,7 @@ repository = "https://github.com/bosondata/crfsuite"
 keywords = ["crf", "crfsuite"]
 readme = "README.md"
 exclude = [
-    "python/*"
+    "cabi/*"
 ]
 
 [dependencies]
