@@ -17,6 +17,7 @@ matrix:
 script:
   - cargo build
   - cargo test
+  - cd cabi && cargo build && cd ..
 
 after_success:
   - |

@@ -1,0 +1,14 @@
+include README.md
+exclude Cargo.toml Cargo.lock
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-exclude target *
+recursive-exclude cabi/target *
+
+include cabi/Cargo.toml
+include cabi/Cargo.lock
+include cabi/*.rs
+include cabi/src/*
+include cabi/include/*.h
