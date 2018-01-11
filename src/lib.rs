@@ -129,6 +129,7 @@ pub struct Attribute {
 pub type Item = Vec<Attribute>;
 
 impl Attribute {
+    #[inline]
     pub fn new<T: Into<String>>(name: T, value: f64) -> Self {
         Self {
             name: name.into(),
@@ -138,6 +139,7 @@ impl Attribute {
 }
 
 impl<T: Into<String>> From<(T, f64)> for Attribute {
+    #[inline]
     fn from(t: (T, f64)) -> Self {
         let (name, value) = t;
         Self {
@@ -500,6 +502,7 @@ pub struct Tagger<'a> {
 }
 
 impl Model {
+    #[inline]
     fn new() -> Self {
         Model(ptr::null_mut())
     }
