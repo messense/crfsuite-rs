@@ -150,7 +150,7 @@ impl<T: Into<String>> From<(T, f64)> for Attribute {
 }
 
 /// The training algorithm
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Algorithm {
     /// Gradient descent using the L-BFGS method
     LBFGS,
@@ -193,7 +193,7 @@ impl ::std::str::FromStr for Algorithm {
 }
 
 /// The graphical model
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum GraphicalModel {
     /// The 1st-order Markov CRF with state and transition features (dyad features).
     /// State features are conditioned on combinations of attributes and labels,
@@ -341,7 +341,7 @@ impl Trainer {
     }
 
     /// Initialize the training algorithm.
-    pub fn select(&mut self, algorithm: &Algorithm, typ: &GraphicalModel) -> Result<()> {
+    pub fn select(&mut self, algorithm: Algorithm, typ: GraphicalModel) -> Result<()> {
         unsafe {
             // Release the trainer if it is already initialzed
             if !self.trainer.is_null() {
