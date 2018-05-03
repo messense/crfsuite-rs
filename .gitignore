@@ -73,3 +73,5 @@ docs/_build/
 .python-version
 
 crfsuite/_native*
+
+.ipynb_checkpoints

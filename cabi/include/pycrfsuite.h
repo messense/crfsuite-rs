@@ -18,6 +18,8 @@ typedef struct Model Model;
 
 typedef struct Tagger Tagger;
 
+typedef struct Trainer Trainer;
+
 /*
  * Represents a string.
  */
@@ -41,6 +43,11 @@ typedef struct {
   Attribute *data;
   size_t len;
 } AttributeList;
+
+typedef struct {
+  FfiStr *data;
+  size_t len;
+} Params;
 
 /*
  * Clears the last error.
@@ -90,5 +97,27 @@ void pycrfsuite_tagger_destroy(Tagger *t);
 Tags *pycrfsuite_tagger_tag(Tagger *t, const AttributeList *xseq, size_t xseq_len);
 
 void pycrfsuite_tags_destroy(Tags *tags);
+
+Trainer *pycrfsuite_trainer_create();
+
+void pycrfsuite_trainer_destroy(Trainer *trainer);
+
+void pycrfsuite_trainer_select(Trainer *trainer, const char *algo);
+
+void pycrfsuite_trainer_clear(Trainer *trainer);
+
+void pycrfsuite_trainer_train(Trainer *trainer, const char *model, int32_t holdout);
+
+void pycrfsuite_trainer_append(Trainer *trainer, const AttributeList *xseq, size_t xseq_len, const char **yseq, size_t yseq_len, int32_t group);
+
+void pycrfsuite_trainer_set(Trainer *trainer, const char* name, const char* value);
+
+FfiStr pycrfsuite_trainer_get(Trainer *trainer, const char* name);
+
+FfiStr pycrfsuite_trainer_help(Trainer *trainer, const char* name);
+
+Params *pycrfsuite_trainer_params(Trainer *trainer);
+
+void pycrfsuite_params_destroy(Params *params);
 
 #endif /* PYCRFSUITE_H_INCLUDED */
