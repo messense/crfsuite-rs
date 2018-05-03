@@ -336,9 +336,9 @@ pub struct tag_crfsuite_tagger {
     >,
     /// Compute the score of a label sequence.
     ///
-    /// tagger      The pointer to this tagger instance.
-    /// path        The label sequence.
-    /// ptr_score   The pointer to a float variable that receives the
+    /// * `tagger`      The pointer to this tagger instance.
+    /// * `path`        The label sequence.
+    /// * `ptr_score`   The pointer to a float variable that receives the
     /// score of the label sequence.
     ///
     /// Returns the status code.
@@ -351,8 +351,8 @@ pub struct tag_crfsuite_tagger {
     >,
     /// Compute the log of the partition factor (normalization constant).
     ///
-    /// tagger      The pointer to this tagger instance.
-    /// ptr_score   The pointer to a float variable that receives the
+    /// * `tagger`      The pointer to this tagger instance.
+    /// * `ptr_score`   The pointer to a float variable that receives the
     /// logarithm of the partition factor.
     ///
     /// Returns the status code.
@@ -365,10 +365,10 @@ pub struct tag_crfsuite_tagger {
     /// This function computes P(y_t = l | x), the probability when
     /// y_t is the label (l).
     ///
-    /// tagger      The pointer to this tagger instance.
-    /// l           The label.
-    /// t           The position.
-    /// ptr_prob    The pointer to a float variable that receives the
+    /// * `tagger`      The pointer to this tagger instance.
+    /// * `l`           The label.
+    /// * `t`           The position.
+    /// * `ptr_prob`    The pointer to a float variable that receives the
     /// marginal probability.
     ///
     /// Returns the status code.
@@ -382,11 +382,11 @@ pub struct tag_crfsuite_tagger {
     >,
     /// Compute the marginal probability of a partial label sequence.
     ///
-    /// tagger      The pointer to this tagger instance.
-    /// path        The partial label sequence.
-    /// begin       The start position of the partial label sequence.
-    /// end         The last+1 position of the partial label sequence.
-    /// ptr_prob    The pointer to a float variable that receives the
+    /// * `tagger`      The pointer to this tagger instance.
+    /// * `path`        The partial label sequence.
+    /// * `begin`       The start position of the partial label sequence.
+    /// * `end`         The last+1 position of the partial label sequence.
+    /// * `ptr_prob`    The pointer to a float variable that receives the
     /// marginal probability.
     ///
     /// Returns the status code.
@@ -410,22 +410,22 @@ pub struct tag_crfsuite_dictionary {
     pub nref: libc::c_int,
     /// Increment the reference counter.
     ///
-    /// dic         The pointer to this dictionary instance.
+    /// `dic`         The pointer to this dictionary instance.
     ///
     /// Returns the reference count after this increment.
     pub addref:
         ::std::option::Option<unsafe extern "C" fn(dic: *mut crfsuite_dictionary_t) -> libc::c_int>,
     /// Decrement the reference counter.
     ///
-    /// dic         The pointer to this dictionary instance.
+    /// `dic`         The pointer to this dictionary instance.
     ///
     /// Returns the reference count after this operation.
     pub release:
         ::std::option::Option<unsafe extern "C" fn(dic: *mut crfsuite_dictionary_t) -> libc::c_int>,
     /// Assign and obtain the integer ID for the string.
     ///
-    /// dic         The pointer to this dictionary instance.
-    /// str         The string.
+    /// * `dic`         The pointer to this dictionary instance.
+    /// * `str`         The string.
     ///
     /// Returns the ID associated with the string if any,
     /// the new ID otherwise.
@@ -435,8 +435,8 @@ pub struct tag_crfsuite_dictionary {
     >,
     /// Obtain the integer ID for the string.
     ///
-    /// dic         The pointer to this dictionary instance.
-    /// str         The string.
+    /// * `dic`         The pointer to this dictionary instance.
+    /// * `str`         The string.
     ///
     /// Returns the ID associated with the string if any,
     /// \c -1 otherwise.
@@ -446,9 +446,9 @@ pub struct tag_crfsuite_dictionary {
     >,
     /// Obtain the string for the ID.
     ///
-    /// dic         The pointer to this dictionary instance.
-    /// id          the string ID.
-    /// pstr        \c *pstr points to the string associated with
+    /// * `dic`         The pointer to this dictionary instance.
+    /// * `id`          the string ID.
+    /// * `pstr`        \c *pstr points to the string associated with
     /// the ID if any, \c NULL otherwise.
     ///
     /// Returns int         \c 0 if the string ID is associated with a string,
@@ -462,14 +462,15 @@ pub struct tag_crfsuite_dictionary {
     >,
     /// Obtain the number of strings in the dictionary.
     ///
-    /// dic         The pointer to this dictionary instance.
+    /// `dic`         The pointer to this dictionary instance.
     ///
     /// Returns the number of strings stored in the dictionary.
     pub num:
         ::std::option::Option<unsafe extern "C" fn(dic: *mut crfsuite_dictionary_t) -> libc::c_int>,
     /// Free the memory block allocated by to_string() function.
-    /// dic         The pointer to this dictionary instance.
-    /// str         The pointer to the string whose memory block is
+    ///
+    /// * `dic`         The pointer to this dictionary instance.
+    /// * `str`         The pointer to the string whose memory block is
     /// freed.
     pub free: ::std::option::Option<
         unsafe extern "C" fn(dic: *mut crfsuite_dictionary_t, str: *const libc::c_char),
@@ -485,30 +486,30 @@ pub struct tag_crfsuite_params {
     pub nref: libc::c_int,
     /// Increment the reference counter.
     ///
-    /// params      The pointer to this parameter instance.
+    /// `params`      The pointer to this parameter instance.
     ///
     /// Returns the reference count after this increment.
     pub addref:
         ::std::option::Option<unsafe extern "C" fn(params: *mut crfsuite_params_t) -> libc::c_int>,
     /// Decrement the reference counter.
     ///
-    /// params      The pointer to this parameter instance.
+    /// `params`      The pointer to this parameter instance.
     ///
     /// Returns the reference count after this operation.
     pub release:
         ::std::option::Option<unsafe extern "C" fn(params: *mut crfsuite_params_t) -> libc::c_int>,
     /// Obtain the number of available parameters.
     ///
-    /// params      The pointer to this parameter instance.
+    /// `params`      The pointer to this parameter instance.
     ///
     /// Returns the number of parameters maintained by this object.
     pub num:
         ::std::option::Option<unsafe extern "C" fn(params: *mut crfsuite_params_t) -> libc::c_int>,
     /// Obtain the name of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// i           The parameter index.
-    /// ptr_name    *ptr_name points to the parameter name.
+    /// * `params`      The pointer to this parameter instance.
+    /// * `i`           The parameter index.
+    /// * `ptr_name`    *ptr_name points to the parameter name.
     ///
     /// Returns int         \c 0 always.
     pub name: ::std::option::Option<
@@ -520,9 +521,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Set a parameter value.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// value       The parameter value in string format.
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `value`       The parameter value in string format.
     ///
     /// Returns int         \c 0 if the parameter is found, \c -1 otherwise.
     pub set: ::std::option::Option<
@@ -534,9 +535,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Get a parameter value.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// ptr_value   *ptr_value presents the parameter value in string
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `ptr_value`   *ptr_value presents the parameter value in string
     /// format.
     ///
     /// Returns int         \c 0 if the parameter is found, \c -1 otherwise.
@@ -549,9 +550,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Set an integer value of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// value       The parameter value.
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `value`       The parameter value.
     ///
     /// Returns int         \c 0 if the parameter value is set successfully,
     /// \c -1 otherwise (unknown parameter or incompatible
@@ -565,9 +566,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Set a float value of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// value       The parameter value.
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `value`       The parameter value.
     ///
     /// Returns int         \c 0 if the parameter value is set successfully,
     /// \c -1 otherwise (unknown parameter or incompatible
@@ -581,9 +582,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Set a string value of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// value       The parameter value.
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `value`       The parameter value.
     ///
     /// Returns int         \c 0 if the parameter value is set successfully,
     /// \c -1 otherwise (unknown parameter or incompatible
@@ -597,9 +598,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Get an integer value of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// ptr_value   The pointer to a variable that receives the
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `ptr_value`   The pointer to a variable that receives the
     /// integer value.
     ///
     /// Returns int         \c 0 if the parameter value is obtained
@@ -614,9 +615,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Get a float value of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// ptr_value   The pointer to a variable that receives the
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `ptr_value`   The pointer to a variable that receives the
     /// float value.
     ///
     /// Returns int         \c 0 if the parameter value is obtained
@@ -631,9 +632,9 @@ pub struct tag_crfsuite_params {
     >,
     /// Get a string value of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// ptr_value   *ptr_value presents the parameter value.
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `ptr_value`   *ptr_value presents the parameter value.
     ///
     /// Returns int         \c 0 if the parameter value is obtained
     /// successfully, \c -1 otherwise (unknown parameter
@@ -647,11 +648,11 @@ pub struct tag_crfsuite_params {
     >,
     /// Get the help message of a parameter.
     ///
-    /// params      The pointer to this parameter instance.
-    /// name        The parameter name.
-    /// ptr_type    The pointer to \c char* to which this function
+    /// * `params`      The pointer to this parameter instance.
+    /// * `name`        The parameter name.
+    /// * `ptr_type`    The pointer to \c char* to which this function
     /// store the type of the parameter.
-    /// ptr_help    The pointer to \c char* to which this function
+    /// * `ptr_help`    The pointer to \c char* to which this function
     /// store the help message of the parameter.
     ///
     /// Returns int         \c 0 if the parameter is found, \c -1 otherwise.
@@ -665,8 +666,8 @@ pub struct tag_crfsuite_params {
     >,
     /// Free the memory block of a string allocated by this object.
     ///
-    /// params      The pointer to this parameter instance.
-    /// str         The pointer to the string.
+    /// * `params`      The pointer to this parameter instance.
+    /// * `str`         The pointer to the string.
     pub free: ::std::option::Option<
         unsafe extern "C" fn(params: *mut crfsuite_params_t, str: *const libc::c_char),
     >,
@@ -675,8 +676,8 @@ extern "C" {
 
     /// Create an instance of an object by an interface identifier.
     ///
-    /// iid         The interface identifier.
-    /// ptr         The pointer to \c void* that points to the
+    /// * `iid`         The interface identifier.
+    /// * `ptr`         The pointer to \c void* that points to the
     /// instance of the object if successful,
     /// *ptr points to \c NULL otherwise.
     ///
@@ -693,8 +694,8 @@ extern "C" {
 
     /// Create an instance of a model object from a model file.
     ///
-    /// filename    The filename of the model.
-    /// ptr         The pointer to \c void* that points to the
+    /// * `filename`    The filename of the model.
+    /// * `ptr`         The pointer to \c void* that points to the
     /// instance of the model object if successful,
     /// *ptr points to \c NULL otherwise.
     ///
@@ -710,10 +711,10 @@ extern "C" {
 
     /// Create an instance of a model object from a model in memory.
     ///
-    /// data        A pointer to the model data.
+    /// * `data`        A pointer to the model data.
     /// Must be 16-byte aligned.
-    /// size        A size (in bytes) of the model data.
-    /// ptr         The pointer to \c void* that points to the
+    /// * `size`        A size (in bytes) of the model data.
+    /// * `ptr`         The pointer to \c void* that points to the
     /// instance of the model object if successful,
     /// *ptr points to \c NULL otherwise.
     ///
@@ -730,14 +731,14 @@ extern "C" {
 
     /// Create instances of tagging object from a model file.
     ///
-    /// filename    The filename of the model.
-    /// ptr_tagger  The pointer to \c void* that points to the
+    /// * `filename`    The filename of the model.
+    /// * `ptr_tagger`  The pointer to \c void* that points to the
     /// instance of the tagger object if successful,
     /// *ptr points to \c NULL otherwise.
-    /// ptr_attrs   The pointer to \c void* that points to the
+    /// * `ptr_attrs`   The pointer to \c void* that points to the
     /// instance of the dictionary object for attributes
     /// if successful, *ptr points to \c NULL otherwise.
-    /// ptr_labels  The pointer to \c void* that points to the
+    /// * `ptr_labels`  The pointer to \c void* that points to the
     /// instance of the dictionary object for labels
     /// if successful, *ptr points to \c NULL otherwise.
     ///
@@ -755,7 +756,7 @@ extern "C" {
 
     /// Initialize an attribute structure.
     ///
-    /// attr        The pointer to crfsuite_attribute_t.
+    /// `attr`        The pointer to crfsuite_attribute_t.
 
     pub fn crfsuite_attribute_init(attr: *mut crfsuite_attribute_t);
 }
@@ -763,9 +764,9 @@ extern "C" {
 
     /// Set an attribute and its value.
     ///
-    /// attr        The pointer to crfsuite_attribute_t.
-    /// aid         The attribute identifier.
-    /// value       The attribute value.
+    /// * `attr`        The pointer to crfsuite_attribute_t.
+    /// * `aid`         The attribute identifier.
+    /// * `value`       The attribute value.
 
     pub fn crfsuite_attribute_set(
         attr: *mut crfsuite_attribute_t,
@@ -777,8 +778,8 @@ extern "C" {
 
     /// Copy the content of an attribute structure.
     ///
-    /// dst         The pointer to the destination.
-    /// src         The pointer to the source.
+    /// * `dst`         The pointer to the destination.
+    /// * `src`         The pointer to the source.
 
     pub fn crfsuite_attribute_copy(
         dst: *mut crfsuite_attribute_t,
@@ -789,8 +790,8 @@ extern "C" {
 
     /// Swap the contents of two attribute structures.
     ///
-    /// x           The pointer to an attribute structure.
-    /// y           The pointer to another attribute structure.
+    /// * `x`           The pointer to an attribute structure.
+    /// * `y`           The pointer to another attribute structure.
 
     pub fn crfsuite_attribute_swap(x: *mut crfsuite_attribute_t, y: *mut crfsuite_attribute_t);
 }
@@ -798,7 +799,7 @@ extern "C" {
 
     /// Initialize an item structure.
     ///
-    /// item        The pointer to crfsuite_item_t.
+    /// `item`        The pointer to crfsuite_item_t.
 
     pub fn crfsuite_item_init(item: *mut crfsuite_item_t);
 }
@@ -806,8 +807,8 @@ extern "C" {
 
     /// Initialize an item structure with the number of attributes.
     ///
-    /// item        The pointer to crfsuite_item_t.
-    /// num_attributes  The number of attributes.
+    /// * `item`        The pointer to crfsuite_item_t.
+    /// * `num_attributes`  The number of attributes.
 
     pub fn crfsuite_item_init_n(item: *mut crfsuite_item_t, num_attributes: libc::c_int);
 }
@@ -815,7 +816,7 @@ extern "C" {
 
     /// Uninitialize an item structure.
     ///
-    /// item        The pointer to crfsuite_item_t.
+    /// `item`        The pointer to crfsuite_item_t.
 
     pub fn crfsuite_item_finish(item: *mut crfsuite_item_t);
 }
@@ -823,8 +824,8 @@ extern "C" {
 
     /// Copy the content of an item structure.
     ///
-    /// dst         The pointer to the destination.
-    /// src         The pointer to the source.
+    /// * `dst`         The pointer to the destination.
+    /// * `src`         The pointer to the source.
 
     pub fn crfsuite_item_copy(dst: *mut crfsuite_item_t, src: *const crfsuite_item_t);
 }
@@ -832,8 +833,8 @@ extern "C" {
 
     /// Swap the contents of two item structures.
     ///
-    /// x           The pointer to an item structure.
-    /// y           The pointer to another item structure.
+    /// * `x`           The pointer to an item structure.
+    /// * `y`           The pointer to another item structure.
 
     pub fn crfsuite_item_swap(x: *mut crfsuite_item_t, y: *mut crfsuite_item_t);
 }
@@ -841,8 +842,8 @@ extern "C" {
 
     /// Append an attribute to the item structure.
     ///
-    /// item        The pointer to crfsuite_item_t.
-    /// attr        The attribute to be added to the item.
+    /// * `item`        The pointer to crfsuite_item_t.
+    /// * `attr`        The attribute to be added to the item.
     ///
     /// Returns int         \c 0 if successful, \c -1 otherwise.
 
@@ -855,7 +856,7 @@ extern "C" {
 
     /// Check whether the item has no attribute.
     ///
-    /// item        The pointer to crfsuite_item_t.
+    /// `item`        The pointer to crfsuite_item_t.
     ///
     /// Returns int         \c 1 if the item has no attribute, \c 0 otherwise.
 
@@ -865,7 +866,7 @@ extern "C" {
 
     /// Initialize an instance structure.
     ///
-    /// seq         The pointer to crfsuite_instance_t.
+    /// `seq`         The pointer to crfsuite_instance_t.
 
     pub fn crfsuite_instance_init(seq: *mut crfsuite_instance_t);
 }
@@ -873,8 +874,8 @@ extern "C" {
 
     /// Initialize an instance structure with the number of items.
     ///
-    /// seq         The pointer to crfsuite_instance_t.
-    /// num_items   The number of items.
+    /// * `seq`         The pointer to crfsuite_instance_t.
+    /// * `num_items`   The number of items.
 
     pub fn crfsuite_instance_init_n(seq: *mut crfsuite_instance_t, num_items: libc::c_int);
 }
@@ -882,7 +883,7 @@ extern "C" {
 
     /// Uninitialize an instance structure.
     ///
-    /// seq         The pointer to crfsuite_instance_t.
+    /// `seq`         The pointer to crfsuite_instance_t.
 
     pub fn crfsuite_instance_finish(seq: *mut crfsuite_instance_t);
 }
@@ -890,8 +891,8 @@ extern "C" {
 
     /// Copy the content of an instance structure.
     ///
-    /// dst         The pointer to the destination.
-    /// src         The pointer to the source.
+    /// * `dst`         The pointer to the destination.
+    /// * `src`         The pointer to the source.
 
     pub fn crfsuite_instance_copy(dst: *mut crfsuite_instance_t, src: *const crfsuite_instance_t);
 }
@@ -899,8 +900,8 @@ extern "C" {
 
     /// Swap the contents of two instance structures.
     ///
-    /// x           The pointer to an instance structure.
-    /// y           The pointer to another instance structure.
+    /// * `x`           The pointer to an instance structure.
+    /// * `y`           The pointer to another instance structure.
 
     pub fn crfsuite_instance_swap(x: *mut crfsuite_instance_t, y: *mut crfsuite_instance_t);
 }
@@ -908,9 +909,9 @@ extern "C" {
 
     /// Append a pair of item and label to the instance structure.
     ///
-    /// seq         The pointer to crfsuite_instance_t.
-    /// item        The item to be added to the instance.
-    /// label       The label to be added to the instance.
+    /// * `seq`         The pointer to crfsuite_instance_t.
+    /// * `item`        The item to be added to the instance.
+    /// * `label`       The label to be added to the instance.
     ///
     /// Returns int         \c 0 if successful, \c -1 otherwise.
 
@@ -924,7 +925,7 @@ extern "C" {
 
     /// Check whether the instance has no item.
     ///
-    /// seq         The pointer to crfsuite_instance_t.
+    /// `seq`         The pointer to crfsuite_instance_t.
     ///
     /// Returns int         \c 1 if the instance has no attribute, \c 0 otherwise.
 
@@ -934,7 +935,7 @@ extern "C" {
 
     /// Initialize a dataset structure.
     ///
-    /// data        The pointer to crfsuite_data_t.
+    /// `data`        The pointer to crfsuite_data_t.
 
     pub fn crfsuite_data_init(data: *mut crfsuite_data_t);
 }
@@ -942,8 +943,8 @@ extern "C" {
 
     /// Initialize a dataset structure with the number of instances.
     ///
-    /// data        The pointer to crfsuite_data_t.
-    /// n           The number of instances.
+    /// * `data`        The pointer to crfsuite_data_t.
+    /// * `n`           The number of instances.
 
     pub fn crfsuite_data_init_n(data: *mut crfsuite_data_t, n: libc::c_int);
 }
@@ -951,7 +952,7 @@ extern "C" {
 
     /// Uninitialize a dataset structure.
     ///
-    /// data        The pointer to crfsuite_data_t.
+    /// `data`        The pointer to crfsuite_data_t.
 
     pub fn crfsuite_data_finish(data: *mut crfsuite_data_t);
 }
@@ -959,8 +960,8 @@ extern "C" {
 
     /// Copy the content of a dataset structure.
     ///
-    /// dst         The pointer to the destination.
-    /// src         The pointer to the source.
+    /// * `dst`         The pointer to the destination.
+    /// * `src`         The pointer to the source.
 
     pub fn crfsuite_data_copy(dst: *mut crfsuite_data_t, src: *const crfsuite_data_t);
 }
@@ -968,8 +969,8 @@ extern "C" {
 
     /// Swap the contents of two dataset structures.
     ///
-    /// x           The pointer to a dataset structure.
-    /// y           The pointer to another dataset structure.
+    /// * `x`           The pointer to a dataset structure.
+    /// * `y`           The pointer to another dataset structure.
 
     pub fn crfsuite_data_swap(x: *mut crfsuite_data_t, y: *mut crfsuite_data_t);
 }
@@ -977,8 +978,8 @@ extern "C" {
 
     /// Append an instance to the dataset structure.
     ///
-    /// data        The pointer to crfsuite_data_t.
-    /// inst        The instance to be added to the dataset.
+    /// * `data`        The pointer to crfsuite_data_t.
+    /// * `inst`        The instance to be added to the dataset.
     ///
     /// Returns int         \c 0 if successful, \c -1 otherwise.
 
@@ -991,7 +992,7 @@ extern "C" {
 
     /// Obtain the maximum length of the instances in the dataset.
     ///
-    /// data        The pointer to crfsuite_data_t.
+    /// `data`        The pointer to crfsuite_data_t.
     ///
     /// Returns the maximum number of items of the instances in the
     /// dataset.
@@ -1002,7 +1003,7 @@ extern "C" {
 
     /// Obtain the total number of items in the dataset.
     ///
-    /// data        The pointer to crfsuite_data_t.
+    /// `data`        The pointer to crfsuite_data_t.
     ///
     /// Returns the total number of items in the dataset.
 
@@ -1012,8 +1013,8 @@ extern "C" {
 
     /// Initialize an evaluation structure.
     ///
-    /// eval        The pointer to crfsuite_evaluation_t.
-    /// n           The number of labels in the dataset.
+    /// * `eval`        The pointer to crfsuite_evaluation_t.
+    /// * `n`           The number of labels in the dataset.
 
     pub fn crfsuite_evaluation_init(eval: *mut crfsuite_evaluation_t, n: libc::c_int);
 }
@@ -1021,7 +1022,7 @@ extern "C" {
 
     /// Uninitialize an evaluation structure.
     ///
-    /// eval        The pointer to crfsuite_evaluation_t.
+    /// `eval`        The pointer to crfsuite_evaluation_t.
 
     pub fn crfsuite_evaluation_finish(eval: *mut crfsuite_evaluation_t);
 }
@@ -1029,7 +1030,7 @@ extern "C" {
 
     /// Reset an evaluation structure.
     ///
-    /// eval        The pointer to crfsuite_evaluation_t.
+    /// `eval`        The pointer to crfsuite_evaluation_t.
 
     pub fn crfsuite_evaluation_clear(eval: *mut crfsuite_evaluation_t);
 }
@@ -1037,10 +1038,10 @@ extern "C" {
 
     /// Accmulate the correctness of the predicted label sequence.
     ///
-    /// eval        The pointer to crfsuite_evaluation_t.
-    /// reference   The reference label sequence.
-    /// prediction  The predicted label sequence.
-    /// T           The length of the label sequence.
+    /// * `eval`        The pointer to crfsuite_evaluation_t.
+    /// * `reference`   The reference label sequence.
+    /// * `prediction`  The predicted label sequence.
+    /// * `T`           The length of the label sequence.
     ///
     /// Returns int         \c 0 if succeeded, \c 1 otherwise.
 
@@ -1055,7 +1056,7 @@ extern "C" {
 
     /// Finalize the evaluation result.
     ///
-    /// eval        The pointer to crfsuite_evaluation_t.
+    /// `eval`        The pointer to crfsuite_evaluation_t.
 
     pub fn crfsuite_evaluation_finalize(eval: *mut crfsuite_evaluation_t);
 }
@@ -1063,10 +1064,10 @@ extern "C" {
 
     /// Print the evaluation result.
     ///
-    /// eval        The pointer to crfsuite_evaluation_t.
-    /// labels      The pointer to the label dictionary.
-    /// cbm         The callback function to receive the evaluation result.
-    /// user        The pointer to the user data that is forwarded to the
+    /// * `eval`        The pointer to crfsuite_evaluation_t.
+    /// * `labels`      The pointer to the label dictionary.
+    /// * `cbm`         The callback function to receive the evaluation result.
+    /// * `user`        The pointer to the user data that is forwarded to the
     /// callback function.
 
     pub fn crfsuite_evaluation_output(
