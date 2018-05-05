@@ -1,6 +1,6 @@
 [package]
 name = "crfsuite-cabi"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["Messense Lv <messense@icloud.com>"]
 publish = false
 
