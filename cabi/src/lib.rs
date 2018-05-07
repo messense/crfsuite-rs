@@ -275,8 +275,8 @@ ffi_fn! {
 }
 
 ffi_fn! {
-    unsafe fn pycrfsuite_trainer_create() -> Result<*mut Trainer> {
-        let trainer = crfsuite::Trainer::new();
+    unsafe fn pycrfsuite_trainer_create(verbose: bool) -> Result<*mut Trainer> {
+        let trainer = crfsuite::Trainer::new(verbose);
         Ok(Box::into_raw(Box::new(trainer)) as *mut Trainer)
     }
 }

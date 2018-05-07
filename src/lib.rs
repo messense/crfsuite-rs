@@ -3,6 +3,7 @@ extern crate crfsuite_sys;
 
 use std::{mem, ptr, fmt, error, slice};
 use std::ffi::{CStr, CString};
+use libc::{c_void, c_int, c_char, c_uint};
 use crfsuite_sys::*;
 
 /// Errors from crfsuite ffi functions
@@ -228,17 +229,36 @@ impl ::std::str::FromStr for GraphicalModel {
 pub struct Trainer {
     data: *mut crfsuite_data_t,
     trainer: *mut crfsuite_trainer_t,
+    verbose: bool,
 }
 
 impl Default for Trainer {
     fn default() -> Self {
-        Trainer::new()
+        Trainer::new(false)
     }
+}
+
+extern {
+    fn vsnprintf(buf: *mut c_char, size: c_uint, fmt: *const c_char, va_list: *mut c_void);
+}
+
+extern "C" fn logging_callback(user: *mut c_void, format: *const c_char, args: *mut __va_list_tag) -> c_int {
+    let trainer: &Trainer = unsafe{ mem::transmute(user) };
+    if !trainer.verbose {
+        return 0;
+    }
+    unsafe {
+        let mut buf = mem::uninitialized::<[c_char; 65535]>();
+        vsnprintf(buf.as_mut_ptr(), 65534, format, mem::transmute(args));
+        let message = CStr::from_ptr(buf.as_ptr()).to_str().unwrap();
+        print!("{}", message);
+    }
+    0
 }
 
 impl Trainer {
     /// Construct a trainer
-    pub fn new() -> Self {
+    pub fn new(verbose: bool) -> Self {
         unsafe {
             let data_ptr = libc::malloc(mem::size_of::<crfsuite_data_t>()) as *mut crfsuite_data_t;
             if !data_ptr.is_null() {
@@ -246,7 +266,8 @@ impl Trainer {
             }
             Self {
                 data: data_ptr,
-                trainer: ptr::null_mut()
+                trainer: ptr::null_mut(),
+                verbose: verbose,
             }
         }
     }
@@ -269,6 +290,7 @@ impl Trainer {
                 }
             }
         }
+        self.set_message_callback();
         Ok(())
     }
 
@@ -471,6 +493,17 @@ impl Trainer {
             (*pms).release.map(|f| f(pms)).unwrap();
         }
         Ok(value)
+    }
+
+    /// Set the callback function and user-defined data
+    // XXX: make it a public API?
+    fn set_message_callback(&mut self) {
+        unsafe {
+            (*self.trainer)
+                .set_message_callback
+                .map(|f| f(self.trainer, mem::transmute(self), Some(logging_callback)))
+                .unwrap();
+        }
     }
 }
 
