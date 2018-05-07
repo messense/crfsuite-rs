@@ -13,7 +13,7 @@ Add it to your ``Cargo.toml``:
 
 ```toml
 [dependencies]
-crfsuite = "0.1"
+crfsuite = "0.2"
 ```
 
 Add ``extern crate crfsuite`` to your crate root and your're good to go!

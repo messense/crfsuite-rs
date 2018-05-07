@@ -1,12 +1,12 @@
 [package]
 name = "crfsuite-cabi"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Messense Lv <messense@icloud.com>"]
 publish = false
 
 [dependencies]
 backtrace = "0.3.5"
-crfsuite = { path = "..", version = "0.1" }
+crfsuite = { path = "..", version = "0.2" }
 
 [lib]
 name = "pycrfsuite"
