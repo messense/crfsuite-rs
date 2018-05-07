@@ -105,8 +105,8 @@ class Trainer(object):
         'gamma': float,
     }
 
-    def __init__(self, algorithm='lbfgs'):
-        self.trainer = rustcall(lib.pycrfsuite_trainer_create)
+    def __init__(self, algorithm='lbfgs', verbose=False):
+        self.trainer = rustcall(lib.pycrfsuite_trainer_create, bool(verbose))
         self.select(algorithm)
 
     def __del__(self):

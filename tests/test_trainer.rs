@@ -11,14 +11,14 @@ fn test_trainer_default_impl() {
 
 #[test]
 fn test_trainer_train_uninitialized() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     let ret = trainer.train("tests/test.crfsuite", 1i32);
     assert_eq!(ret.err(), Some(CrfError::AlgorithmNotSelected));
 }
 
 #[test]
 fn test_trainer_train_empty_data() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     let ret = trainer.train("tests/test.crfsuite", -1i32);
     assert_eq!(ret.err(), Some(CrfError::EmptyData));
@@ -38,7 +38,7 @@ fn test_train_and_tag() {
         vec![Attribute::new("clean", 1.0)],
     ];
     let yseq = ["sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy"];
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::new(true);
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     trainer.append(&xseq, &yseq, 0i32).unwrap();
     trainer.train("tests/test.crfsuite", -1i32).unwrap();
@@ -53,7 +53,7 @@ fn test_train_and_tag() {
 
 #[test]
 fn test_clear_empty() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     trainer.clear().unwrap();
 }
@@ -64,7 +64,7 @@ fn test_clear_not_empty() {
         vec![Attribute::new("walk", 1.0), Attribute::new("shop", 0.5)],
     ];
     let yseq = ["sunny"];
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     trainer.append(&xseq, &yseq, 0i32).unwrap();
     trainer.clear().unwrap();
@@ -72,7 +72,7 @@ fn test_clear_not_empty() {
 
 #[test]
 fn test_params() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     let params = trainer.params();
     assert!(params.contains(&"c1".to_string()));
@@ -87,7 +87,7 @@ fn test_params() {
 
 #[test]
 fn test_help() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     let msg = trainer.help("c1").unwrap();
     assert!(msg.contains("L1"));
@@ -99,7 +99,7 @@ fn test_help() {
 
 #[test]
 fn test_help_invalid_argument() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::LBFGS, GraphicalModel::CRF1D).unwrap();
     let ret = trainer.help("foo");
     match ret.err().unwrap() {
@@ -110,14 +110,14 @@ fn test_help_invalid_argument() {
 
 #[test]
 fn test_get() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
     trainer.get("c2").unwrap();
 }
 
 #[test]
 fn test_get_invalid_argument() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
     let ret = trainer.get("foo");
     match ret.err().unwrap() {
@@ -128,7 +128,7 @@ fn test_get_invalid_argument() {
 
 #[test]
 fn test_set() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
     let before = trainer.get("c2").unwrap();
     trainer.set("c2", "0.5").unwrap();
@@ -138,7 +138,7 @@ fn test_set() {
 
 #[test]
 fn test_set_invalid_argument() {
-    let mut trainer = Trainer::new();
+    let mut trainer = Trainer::default();
     trainer.select(Algorithm::L2SGD, GraphicalModel::CRF1D).unwrap();
     let ret = trainer.set("foo", "1.0");
     match ret.err().unwrap() {

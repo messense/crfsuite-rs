@@ -98,7 +98,7 @@ Tags *pycrfsuite_tagger_tag(Tagger *t, const AttributeList *xseq, size_t xseq_le
 
 void pycrfsuite_tags_destroy(Tags *tags);
 
-Trainer *pycrfsuite_trainer_create();
+Trainer *pycrfsuite_trainer_create(bool verbose);
 
 void pycrfsuite_trainer_destroy(Trainer *trainer);
 
