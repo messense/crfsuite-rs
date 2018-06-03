@@ -547,6 +547,19 @@ impl Model {
         Ok(model)
     }
 
+    /// Create an instance of a model object from a model in memory
+    pub fn from_memory(bytes: &[u8]) -> Result<Self> {
+        let mut instance = ptr::null_mut();
+        unsafe {
+            let ret = crfsuite_create_instance_from_memory(bytes.as_ptr() as *const c_void, bytes.len(), &mut instance);
+            if ret != 0 {
+                return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
+            }
+        }
+        let model: *mut crfsuite_sys::crfsuite_model_t = unsafe { mem::transmute(instance) };
+        Ok(Model(model))
+    }
+
     /// Open a model file
     fn open(&mut self, name: &str) -> Result<()> {
         let name_cstr = CString::new(name).unwrap();
