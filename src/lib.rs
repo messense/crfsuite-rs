@@ -118,7 +118,7 @@ impl fmt::Display for CrfError {
 pub type Result<T> = ::std::result::Result<T, CrfError>;
 
 /// Tuple of attribute and its value.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Attribute {
     /// Attribute name
     pub name: String,
@@ -135,6 +135,26 @@ impl Attribute {
         Self {
             name: name.into(),
             value: value
+        }
+    }
+}
+
+impl From<String> for Attribute {
+    #[inline]
+    fn from(t: String) -> Self {
+        Self {
+            name: t,
+            value: 1.0,
+        }
+    }
+}
+
+impl<'a> From<&'a str> for Attribute {
+    #[inline]
+    fn from(t: &'a str) -> Self {
+        Self {
+            name: t.to_string(),
+            value: 1.0,
         }
     }
 }
@@ -857,5 +877,6 @@ mod tests {
     fn test_attribute() {
         Attribute::new("foo", 1.0);
         Attribute::from(("foo", 1.0));
+        assert_eq!(Attribute::from("foo"), Attribute::from(("foo", 1.0)));
     }
 }
