@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function
 import os
+import sys
 
 from ._compat import text_type, string_types
 from ._native import lib, ffi
@@ -26,6 +27,19 @@ class Model(object):
             return []
         tagger = Tagger(self.model)
         return tagger.tag(xseq)
+
+    def dump(self, filename=None):
+        if filename is None:
+            rustcall(lib.pycrfsuite_model_dump, self.model, os.dup(sys.stdout.fileno()))
+        else:
+            fd = os.open(filename, os.O_CREAT | os.O_WRONLY)
+            try:
+                rustcall(lib.pycrfsuite_model_dump, self.model, fd)
+            finally:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass  # Already closed
 
 
 def _to_attr(x):

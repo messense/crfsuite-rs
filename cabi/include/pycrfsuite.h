@@ -73,6 +73,8 @@ void pycrfsuite_model_destroy(Model *m);
 
 Model *pycrfsuite_model_open(const char *s);
 
+void pycrfsuite_model_dump(Model *m, int fd);
+
 /*
  * Frees a ffi str.
  *

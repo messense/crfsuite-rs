@@ -6,7 +6,7 @@ use std::ffi::{CStr, CString};
 use std::path::Path;
 use std::fs::File;
 #[cfg(unix)]
-use std::os::unix::io::IntoRawFd;
+use std::os::unix::io::{IntoRawFd, RawFd};
 
 use libc::{c_void, c_int, c_char, c_uint, fdopen, fclose};
 use crfsuite_sys::*;
@@ -627,8 +627,7 @@ impl Model {
     ///
     /// `file`: Something convertable to file descriptor
     ///
-    pub fn dump<T: IntoRawFd>(&self, file: T) -> Result<()> {
-        let fd = file.into_raw_fd();
+    pub fn dump(&self, fd: RawFd) -> Result<()> {
         let c_mode = CString::new("w").unwrap();
         unsafe {
             let file = fdopen(fd, c_mode.as_ptr());
@@ -653,7 +652,7 @@ impl Model {
     ///
     pub fn dump_file<T: AsRef<Path>>(&self, path: T) -> Result<()> {
         let file = File::create(path).expect("create file failed");
-        self.dump(file)
+        self.dump(file.into_raw_fd())
     }
 
     unsafe fn get_attrs(&self) -> Result<*mut crfsuite_dictionary_t> {
