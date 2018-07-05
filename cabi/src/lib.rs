@@ -194,6 +194,13 @@ ffi_fn! {
 }
 
 ffi_fn! {
+    unsafe fn pycrfsuite_model_dump(m: *mut Model, fd: c_int) -> Result<()> {
+        let model = m as *mut crfsuite::Model;
+        Ok((*model).dump(fd)?)
+    }
+}
+
+ffi_fn! {
     unsafe fn pycrfsuite_model_destroy(m: *mut Model) {
         if !m.is_null() {
             let model = m as *mut crfsuite::Model;
