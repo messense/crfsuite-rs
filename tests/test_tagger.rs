@@ -10,6 +10,13 @@ fn test_open_model() {
 }
 
 #[test]
+fn test_dump_model() {
+    let model = Model::from_file("tests/model.crfsuite").unwrap();
+    model.dump_file("tests/model.dump").unwrap();
+}
+
+
+#[test]
 fn test_create_model_from_memory() {
     let model_memory = include_bytes!("model.crfsuite");
     let model = Model::from_memory(&model_memory[..]).unwrap();

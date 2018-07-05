@@ -3,7 +3,12 @@ extern crate crfsuite_sys;
 
 use std::{mem, ptr, fmt, error, slice};
 use std::ffi::{CStr, CString};
-use libc::{c_void, c_int, c_char, c_uint};
+use std::path::Path;
+use std::fs::File;
+#[cfg(unix)]
+use std::os::unix::io::IntoRawFd;
+
+use libc::{c_void, c_int, c_char, c_uint, fdopen, fclose};
 use crfsuite_sys::*;
 
 /// Errors from crfsuite ffi functions
@@ -613,6 +618,42 @@ impl Model {
                 tagger: tagger
             })
         }
+    }
+
+    #[cfg(unix)]
+    /// Print the model in human-readable format
+    ///
+    /// ## Parameters
+    ///
+    /// `file`: Something convertable to file descriptor
+    ///
+    pub fn dump<T: IntoRawFd>(&self, file: T) -> Result<()> {
+        let fd = file.into_raw_fd();
+        let c_mode = CString::new("w").unwrap();
+        unsafe {
+            let file = fdopen(fd, c_mode.as_ptr());
+            if file.is_null() {
+                panic!("fdopen failed");
+            }
+            let ret = (*self.0).dump.map(|f| f(self.0, file)).unwrap();
+            if ret != 0 {
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+            fclose(file);
+        }
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    /// Print the model in human-readable format to file
+    ///
+    /// ## Parameters
+    ///
+    /// `path`: Dump file path
+    ///
+    pub fn dump_file<T: AsRef<Path>>(&self, path: T) -> Result<()> {
+        let file = File::create(path).expect("create file failed");
+        self.dump(file)
     }
 
     unsafe fn get_attrs(&self) -> Result<*mut crfsuite_dictionary_t> {

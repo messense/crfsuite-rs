@@ -75,3 +75,5 @@ docs/_build/
 crfsuite/_native*
 
 .ipynb_checkpoints
+
+*.dump
