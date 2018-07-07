@@ -10,6 +10,12 @@ fn test_open_model() {
 }
 
 #[test]
+fn test_open_not_existing_model_does_not_panic() {
+    let ret = Model::from_file("tests/does-not-exists.crfsuite");
+    assert!(ret.is_err());
+}
+
+#[test]
 fn test_dump_model() {
     let model = Model::from_file("tests/model.crfsuite").unwrap();
     model.dump_file("tests/model.dump").unwrap();
