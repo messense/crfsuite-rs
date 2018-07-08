@@ -5,6 +5,7 @@ use std::{mem, ptr, fmt, error, slice};
 use std::ffi::{CStr, CString};
 use std::path::Path;
 use std::fs::File;
+use std::io::{Read, Cursor, Seek, SeekFrom};
 #[cfg(unix)]
 use std::os::unix::io::{IntoRawFd, RawFd};
 
@@ -90,6 +91,8 @@ pub enum CrfError {
     InvalidArgument(String),
     /// Invalid value
     ValueError(String),
+    /// Invalid model
+    InvalidModel(String),
 }
 
 impl error::Error for CrfError {
@@ -102,6 +105,7 @@ impl error::Error for CrfError {
             CrfError::EmptyData => "Trainer data is empty",
             CrfError::InvalidArgument(_) => "Invalid argument",
             CrfError::ValueError(_) => "Invalid value",
+            CrfError::InvalidModel(_) => "Invalid model",
         }
     }
 }
@@ -115,7 +119,8 @@ impl fmt::Display for CrfError {
             CrfError::EmptyData=> write!(f, "The data is empty. Call Trainer::append before Trainer::train."),
             CrfError::CreateInstanceError(ref err) |
                 CrfError::InvalidArgument(ref err) |
-                CrfError::ValueError(ref err) => err.fmt(f),
+                CrfError::ValueError(ref err) |
+                CrfError::InvalidModel(ref err) => err.fmt(f),
         }
     }
 }
@@ -567,6 +572,10 @@ impl Model {
 
     /// Open a model file
     pub fn from_file(name: &str) -> Result<Self> {
+        let mut file = File::open(name).map_err(|_| CrfError::InvalidModel("Failed to open model".to_string()))?;
+        Self::validate_model(&mut file)?;
+        drop(file);  // Close file
+
         let mut model = Model::new();
         model.open(name)?;
         Ok(model)
@@ -574,6 +583,8 @@ impl Model {
 
     /// Create an instance of a model object from a model in memory
     pub fn from_memory(bytes: &[u8]) -> Result<Self> {
+        let mut cdr = Cursor::new(bytes);
+        Self::validate_model(&mut cdr)?;
         let mut instance = ptr::null_mut();
         unsafe {
             let ret = crfsuite_create_instance_from_memory(bytes.as_ptr() as *const c_void, bytes.len(), &mut instance);
@@ -583,6 +594,24 @@ impl Model {
         }
         let model: *mut crfsuite_sys::crfsuite_model_t = unsafe { mem::transmute(instance) };
         Ok(Model(model))
+    }
+
+    /// Validate model
+    ///
+    /// See https://github.com/chokkan/crfsuite/pull/24
+    fn validate_model<R: Read + Seek>(reader: &mut R) -> Result<()> {
+        // Check that file magic is correct
+        let mut magic = [0; 4];
+        reader.read_exact(&mut magic).map_err(|_| CrfError::InvalidModel("Failed to read model file magic".to_string()))?;
+        if &magic != b"lCRF" {
+            return Err(CrfError::InvalidModel("Invalid model file magic".to_string()));
+        }
+        // Make sure crfsuite won't read past allocated memory in case of incomplete header
+        let pos = reader.seek(SeekFrom::End(0)).map_err(|_| CrfError::InvalidModel("Invalid model".to_string()))?;
+        if pos <= 48 {  // header size
+            return Err(CrfError::InvalidModel("Invalid model file header".to_string()));
+        }
+        Ok(())
     }
 
     /// Open a model file

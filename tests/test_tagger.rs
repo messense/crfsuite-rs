@@ -1,6 +1,6 @@
 extern crate crfsuite;
 
-use crfsuite::{Model, Attribute};
+use crfsuite::{Model, Attribute, CrfError};
 
 #[test]
 fn test_open_model() {
@@ -12,7 +12,10 @@ fn test_open_model() {
 #[test]
 fn test_open_not_existing_model_does_not_panic() {
     let ret = Model::from_file("tests/does-not-exists.crfsuite");
-    assert!(ret.is_err());
+    match ret {
+        Err(CrfError::InvalidModel(..)) => {},
+        _ => panic!("test fail"),
+    }
 }
 
 #[test]
@@ -20,7 +23,6 @@ fn test_dump_model() {
     let model = Model::from_file("tests/model.crfsuite").unwrap();
     model.dump_file("tests/model.dump").unwrap();
 }
-
 
 #[test]
 fn test_create_model_from_memory() {
@@ -44,6 +46,33 @@ fn test_create_model_from_memory() {
 
     tagger.probability(&yseq).unwrap();
     tagger.marginal("sunny", 1i32).unwrap();
+}
+
+#[test]
+fn test_create_model_from_memory_invalid_model() {
+    let ret = Model::from_memory(b"");
+    match ret {
+        Err(CrfError::InvalidModel(..)) => {},
+        _ => panic!("test fail"),
+    }
+
+    let ret = Model::from_memory(b"abcdefg");
+    match ret {
+        Err(CrfError::InvalidModel(..)) => {},
+        _ => panic!("test fail"),
+    }
+
+    let ret = Model::from_memory(b"lCRF");
+    match ret {
+        Err(CrfError::InvalidModel(..)) => {},
+        _ => panic!("test fail"),
+    }
+
+    let ret = Model::from_memory(b"lCRFabcdefg");
+    match ret {
+        Err(CrfError::InvalidModel(..)) => {},
+        _ => panic!("test fail"),
+    }
 }
 
 #[test]
