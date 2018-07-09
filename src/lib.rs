@@ -572,7 +572,8 @@ impl Model {
 
     /// Open a model file
     pub fn from_file(name: &str) -> Result<Self> {
-        let mut file = File::open(name).map_err(|_| CrfError::InvalidModel("Failed to open model".to_string()))?;
+        let mut file = File::open(name)
+            .map_err(|err| CrfError::InvalidModel(format!("Failed to open model: {}", err)))?;
         Self::validate_model(&mut file)?;
         drop(file);  // Close file
 
@@ -602,12 +603,16 @@ impl Model {
     fn validate_model<R: Read + Seek>(reader: &mut R) -> Result<()> {
         // Check that file magic is correct
         let mut magic = [0; 4];
-        reader.read_exact(&mut magic).map_err(|_| CrfError::InvalidModel("Failed to read model file magic".to_string()))?;
+        reader
+            .read_exact(&mut magic)
+            .map_err(|err| CrfError::InvalidModel(format!("Failed to read model file magic: {}", err)))?;
         if &magic != b"lCRF" {
             return Err(CrfError::InvalidModel("Invalid model file magic".to_string()));
         }
         // Make sure crfsuite won't read past allocated memory in case of incomplete header
-        let pos = reader.seek(SeekFrom::End(0)).map_err(|_| CrfError::InvalidModel("Invalid model".to_string()))?;
+        let pos = reader
+            .seek(SeekFrom::End(0))
+            .map_err(|err| CrfError::InvalidModel(format!("Invalid model: {}", err)))?;
         if pos <= 48 {  // header size
             return Err(CrfError::InvalidModel("Invalid model file header".to_string()));
         }
