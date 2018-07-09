@@ -1,5 +1,4 @@
 include README.md
-exclude Cargo.toml Cargo.lock
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
@@ -7,8 +6,12 @@ recursive-exclude * *.py[co]
 recursive-exclude target *
 recursive-exclude cabi/target *
 
+include Cargo.toml
+include src/*.rs
+
+recursive-include crfsuite-sys *
+
 include cabi/Cargo.toml
 include cabi/Cargo.lock
-include cabi/*.rs
-include cabi/src/*
+include cabi/src/*.rs
 include cabi/include/*.h
