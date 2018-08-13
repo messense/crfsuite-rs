@@ -19,17 +19,15 @@ class Model(object):
         if model_path:
             if isinstance(model_path, text_type):
                 model_path = model_path.encode('utf-8')
-            self.model = rustcall(lib.pycrfsuite_model_open, model_path)
+            self.model = ffi.gc(rustcall(lib.pycrfsuite_model_open, model_path), lib.pycrfsuite_model_destroy)
 
         if model_bytes:
             if isinstance(model_bytes, text_type):
                 model_bytes = model_bytes.encode('utf-8')
-            self.model = rustcall(lib.pycrfsuite_model_from_bytes, model_bytes, len(model_bytes))
-
-    def __del__(self):
-        if getattr(self, 'model', None):
-            lib.pycrfsuite_model_destroy(self.model)
-            self.model = None
+            self.model = ffi.gc(
+                rustcall(lib.pycrfsuite_model_from_bytes, model_bytes, len(model_bytes)),
+                lib.pycrfsuite_model_destroy
+            )
 
     def tag(self, xseq):
         if not xseq:
@@ -66,11 +64,7 @@ def _to_attr(x):
 
 class Tagger(object):
     def __init__(self, model):
-        self.tagger = rustcall(lib.pycrfsuite_tagger_create, model)
-
-    def __del__(self):
-        if getattr(self, 'tagger', None):
-            lib.pycrfsuite_tagger_destroy(self.tagger)
+        self.tagger = ffi.gc(rustcall(lib.pycrfsuite_tagger_create, model), lib.pycrfsuite_tagger_destroy)
 
     def tag(self, xseq):
         attrs_list = ffi.new('AttributeList []', len(xseq))
@@ -129,12 +123,8 @@ class Trainer(object):
     }
 
     def __init__(self, algorithm='lbfgs', verbose=False):
-        self.trainer = rustcall(lib.pycrfsuite_trainer_create, bool(verbose))
+        self.trainer = ffi.gc(rustcall(lib.pycrfsuite_trainer_create, bool(verbose)), lib.pycrfsuite_trainer_destroy)
         self.select(algorithm)
-
-    def __del__(self):
-        if getattr(self, 'trainer', None):
-            lib.pycrfsuite_trainer_destroy(self.trainer)
 
     def select(self, algorithm):
         if isinstance(algorithm, text_type):
