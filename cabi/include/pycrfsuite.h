@@ -73,6 +73,8 @@ void pycrfsuite_model_destroy(Model *m);
 
 Model *pycrfsuite_model_open(const char *s);
 
+Model *pycrfsuite_model_from_bytes(const uint8_t *bytes, size_t len);
+
 void pycrfsuite_model_dump(Model *m, int fd);
 
 /*

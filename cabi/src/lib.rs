@@ -210,6 +210,14 @@ ffi_fn! {
 }
 
 ffi_fn! {
+    unsafe fn pycrfsuite_model_from_bytes(bytes: *const u8, len: usize) -> Result<*mut Model> {
+        let bytes = slice::from_raw_parts(bytes, len);
+        let model = crfsuite::Model::from_memory(bytes)?;
+        Ok(Box::into_raw(Box::new(model)) as *mut Model)
+    }
+}
+
+ffi_fn! {
     unsafe fn pycrfsuite_tagger_create(m: *mut Model) -> Result<*mut Tagger> {
         let model = m as *mut crfsuite::Model;
         let tagger =(*model).tagger()?;

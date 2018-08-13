@@ -12,10 +12,19 @@ os.environ['RUST_BACKTRACE'] = '1'
 ffi.init_once(lib.pycrfsuite_init, 'init')
 
 class Model(object):
-    def __init__(self, model_path):
-        if isinstance(model_path, text_type):
-            model_path = model_path.encode('utf-8')
-        self.model = rustcall(lib.pycrfsuite_model_open, model_path)
+    def __init__(self, model_path=None, model_bytes=None):
+        assert model_path or model_bytes, 'model_path or model_bytes requried'
+        assert not (model_path and model_bytes), 'model_path and model_bytes should not be used together'
+
+        if model_path:
+            if isinstance(model_path, text_type):
+                model_path = model_path.encode('utf-8')
+            self.model = rustcall(lib.pycrfsuite_model_open, model_path)
+
+        if model_bytes:
+            if isinstance(model_bytes, text_type):
+                model_bytes = model_bytes.encode('utf-8')
+            self.model = rustcall(lib.pycrfsuite_model_from_bytes, model_bytes, len(model_bytes))
 
     def __del__(self):
         if getattr(self, 'model', None):
