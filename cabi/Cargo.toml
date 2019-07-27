@@ -11,7 +11,3 @@ crfsuite = { path = "..", version = "0.2" }
 [lib]
 name = "pycrfsuite"
 crate-type = ["cdylib"]
-
-[profile.release]
-debug = true
-lto = true

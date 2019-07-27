@@ -17,3 +17,10 @@ crfsuite-sys = { path = "crfsuite-sys", version = "0.1" }
 
 [badges]
 travis-ci = { repository = "bosondata/crfsuite-rs" }
+
+[workspace]
+members = [
+    ".",
+    "crfsuite-sys",
+    "cabi",
+]
