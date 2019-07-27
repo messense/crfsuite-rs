@@ -2,6 +2,10 @@
 from setuptools import setup, find_packages
 
 
+with open('README.md', 'rb') as f:
+    long_description = f.read().decode('utf-8')
+
+
 def build_native(spec):
     # build an example rust library
     build = spec.add_external_build(
@@ -22,6 +26,8 @@ setup(
     version='0.2.8',
     url='https://github.com/bosondata/crfsuite-rs',
     description='Python binding for crfsuite',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(),
     zip_safe=False,
     platforms='any',
