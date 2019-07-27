@@ -144,7 +144,7 @@ impl Attribute {
     pub fn new<T: Into<String>>(name: T, value: f64) -> Self {
         Self {
             name: name.into(),
-            value: value
+            value
         }
     }
 }
@@ -273,13 +273,13 @@ extern {
 }
 
 extern "C" fn logging_callback(user: *mut c_void, format: *const c_char, args: *mut __va_list_tag) -> c_int {
-    let trainer: &Trainer = unsafe{ mem::transmute(user) };
+    let trainer: &Trainer = unsafe{ &*(user as *const Trainer) };
     if !trainer.verbose {
         return 0;
     }
     unsafe {
         let mut buf = mem::uninitialized::<[c_char; 65535]>();
-        vsnprintf(buf.as_mut_ptr(), 65534, format, mem::transmute(args));
+        vsnprintf(buf.as_mut_ptr(), 65534, format, args as *mut libc::c_void);
         let message = CStr::from_ptr(buf.as_ptr()).to_str().unwrap();
         print!("{}", message);
     }
@@ -297,7 +297,7 @@ impl Trainer {
             Self {
                 data: data_ptr,
                 trainer: ptr::null_mut(),
-                verbose: verbose,
+                verbose,
             }
         }
     }
@@ -367,10 +367,10 @@ impl Trainer {
             let crf_labels = slice::from_raw_parts_mut(instance.labels, instance.num_items as usize);
             for t in 0..xseq_len {
                 let items = &xseq[t];
-                let mut crf_item = &mut crf_items[t];
+                let crf_item = &mut crf_items[t];
                 // Set the attributes in the item
                 crfsuite_item_init_n(crf_item, items.len() as i32);
-                let mut contents = slice::from_raw_parts_mut(crf_item.contents, crf_item.num_contents as usize);
+                let contents = slice::from_raw_parts_mut(crf_item.contents, crf_item.num_contents as usize);
                 for (content, item) in contents.iter_mut().zip(items) {
                     let name_cstr = CString::new(&item.name[..]).unwrap();
                     let aid = (*(*self.data).attrs).get.map(|f| f((*self.data).attrs, name_cstr.as_ptr())).unwrap();
@@ -531,7 +531,7 @@ impl Trainer {
         unsafe {
             (*self.trainer)
                 .set_message_callback
-                .map(|f| f(self.trainer, mem::transmute(self), Some(logging_callback)))
+                .map(|f| f(self.trainer, self as *mut Trainer as *mut libc::c_void, Some(logging_callback)))
                 .unwrap();
         }
     }
@@ -593,7 +593,7 @@ impl Model {
                 return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
             }
         }
-        let model: *mut crfsuite_sys::crfsuite_model_t = unsafe { mem::transmute(instance) };
+        let model: *mut crfsuite_sys::crfsuite_model_t = instance as *mut crfsuite_sys::tag_crfsuite_model;
         Ok(Model(model))
     }
 
@@ -649,7 +649,7 @@ impl Model {
             }
             Ok(Tagger {
                 model: self,
-                tagger: tagger
+                tagger
             })
         }
     }
@@ -761,7 +761,7 @@ impl<'a> Tagger<'a> {
             let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
             for t in 0..xseq_len {
                 let items = &xseq[t];
-                let mut crf_item = &mut crf_items[t];
+                let crf_item = &mut crf_items[t];
                 // Set the attributes in the item
                 crfsuite_item_init(crf_item);
                 for attr in items.iter() {
