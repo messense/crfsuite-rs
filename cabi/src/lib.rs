@@ -161,10 +161,10 @@ pub unsafe extern "C" fn pycrfsuite_err_get_last_message() -> FfiStr {
     LAST_ERROR.with(|e| {
         if let Some(ref err) = *e.borrow() {
             let mut msg = err.to_string();
-            let mut cause = err.cause();
+            let mut cause = err.source();
             while let Some(the_cause) = cause {
                 write!(&mut msg, "\n  caused by: {}", the_cause).ok();
-                cause = the_cause.cause();
+                cause = the_cause.source();
             }
             FfiStr::from_string(msg)
         } else {
