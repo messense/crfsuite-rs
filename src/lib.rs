@@ -1,3 +1,7 @@
+#![allow(unknown_lints)]
+#![allow(clippy::useless_transmute)]
+#![allow(clippy::transmute_ptr_to_ref)]
+#![allow(clippy::transmute_ptr_to_ptr)]
 extern crate libc;
 extern crate crfsuite_sys;
 
@@ -144,7 +148,7 @@ impl Attribute {
     pub fn new<T: Into<String>>(name: T, value: f64) -> Self {
         Self {
             name: name.into(),
-            value: value
+            value
         }
     }
 }
@@ -297,7 +301,7 @@ impl Trainer {
             Self {
                 data: data_ptr,
                 trainer: ptr::null_mut(),
-                verbose: verbose,
+                verbose,
             }
         }
     }
@@ -367,10 +371,10 @@ impl Trainer {
             let crf_labels = slice::from_raw_parts_mut(instance.labels, instance.num_items as usize);
             for t in 0..xseq_len {
                 let items = &xseq[t];
-                let mut crf_item = &mut crf_items[t];
+                let crf_item = &mut crf_items[t];
                 // Set the attributes in the item
                 crfsuite_item_init_n(crf_item, items.len() as i32);
-                let mut contents = slice::from_raw_parts_mut(crf_item.contents, crf_item.num_contents as usize);
+                let contents = slice::from_raw_parts_mut(crf_item.contents, crf_item.num_contents as usize);
                 for (content, item) in contents.iter_mut().zip(items) {
                     let name_cstr = CString::new(&item.name[..]).unwrap();
                     let aid = (*(*self.data).attrs).get.map(|f| f((*self.data).attrs, name_cstr.as_ptr())).unwrap();
@@ -649,7 +653,7 @@ impl Model {
             }
             Ok(Tagger {
                 model: self,
-                tagger: tagger
+                tagger
             })
         }
     }
@@ -761,7 +765,7 @@ impl<'a> Tagger<'a> {
             let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
             for t in 0..xseq_len {
                 let items = &xseq[t];
-                let mut crf_item = &mut crf_items[t];
+                let crf_item = &mut crf_items[t];
                 // Set the attributes in the item
                 crfsuite_item_init(crf_item);
                 for attr in items.iter() {
