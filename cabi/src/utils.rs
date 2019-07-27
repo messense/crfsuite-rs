@@ -59,7 +59,7 @@ pub unsafe fn landingpad<F: FnOnce() -> Result<T> + panic::UnwindSafe, T>(
         Ok(rv) => rv.map_err(|err| notify_err(err)).unwrap_or(mem::zeroed()),
         Err(err) => {
             use std::any::Any;
-            let err = &*err as &Any;
+            let err = &*err as &dyn Any;
             let msg = match err.downcast_ref::<&str>() {
                 Some(s) => *s,
                 None => {
