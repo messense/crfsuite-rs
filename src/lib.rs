@@ -608,6 +608,7 @@ impl Drop for Trainer {
     fn drop(&mut self) {
         unsafe {
             if !self.data.is_null() {
+                self.clear().unwrap();
                 libc::free(self.data as *mut _);
                 self.data = ptr::null_mut();
             }
