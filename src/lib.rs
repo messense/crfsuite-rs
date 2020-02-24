@@ -512,6 +512,7 @@ impl Trainer {
                 ret.push(c_str.to_string_lossy().into_owned());
                 (*pms).free.map(|f| f(pms, name)).unwrap();
             }
+            (*pms).release.map(|f| f(pms)).unwrap();
             ret
         }
     }
