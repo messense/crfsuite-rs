@@ -2,19 +2,19 @@
 #![allow(clippy::useless_transmute)]
 #![allow(clippy::transmute_ptr_to_ref)]
 #![allow(clippy::transmute_ptr_to_ptr)]
-extern crate libc;
 extern crate crfsuite_sys;
+extern crate libc;
 
-use std::{mem, ptr, fmt, error, slice};
 use std::ffi::{CStr, CString};
-use std::path::Path;
 use std::fs::File;
-use std::io::{Read, Cursor, Seek, SeekFrom};
+use std::io::{Cursor, Read, Seek, SeekFrom};
 #[cfg(unix)]
 use std::os::unix::io::{IntoRawFd, RawFd};
+use std::path::Path;
+use std::{error, fmt, mem, ptr, slice};
 
-use libc::{c_void, c_int, c_char, c_uint, fdopen, fclose};
 use crfsuite_sys::*;
+use libc::{c_char, c_int, c_uint, c_void, fclose, fdopen};
 
 /// Errors from crfsuite ffi functions
 #[derive(Debug, Clone, PartialEq)]
@@ -32,7 +32,7 @@ pub enum CrfSuiteError {
     /// Overflow
     Overflow,
     /// Unknown error occurred
-    Unknown
+    Unknown,
 }
 
 impl error::Error for CrfSuiteError {
@@ -119,12 +119,18 @@ impl fmt::Display for CrfError {
         match *self {
             CrfError::CrfSuiteError(ref err) => err.fmt(f),
             CrfError::ParamNotFound(ref name) => write!(f, "Parameter {} not found", name),
-            CrfError::AlgorithmNotSelected => write!(f, "The trainer is not initialized. Call Trainer::select before Trainer::train."),
-            CrfError::EmptyData=> write!(f, "The data is empty. Call Trainer::append before Trainer::train."),
-            CrfError::CreateInstanceError(ref err) |
-                CrfError::InvalidArgument(ref err) |
-                CrfError::ValueError(ref err) |
-                CrfError::InvalidModel(ref err) => err.fmt(f),
+            CrfError::AlgorithmNotSelected => write!(
+                f,
+                "The trainer is not initialized. Call Trainer::select before Trainer::train."
+            ),
+            CrfError::EmptyData => write!(
+                f,
+                "The data is empty. Call Trainer::append before Trainer::train."
+            ),
+            CrfError::CreateInstanceError(ref err)
+            | CrfError::InvalidArgument(ref err)
+            | CrfError::ValueError(ref err)
+            | CrfError::InvalidModel(ref err) => err.fmt(f),
         }
     }
 }
@@ -148,7 +154,7 @@ impl Attribute {
     pub fn new<T: Into<String>>(name: T, value: f64) -> Self {
         Self {
             name: name.into(),
-            value
+            value,
         }
     }
 }
@@ -179,7 +185,7 @@ impl<T: Into<String>> From<(T, f64)> for Attribute {
         let (name, value) = t;
         Self {
             name: name.into(),
-            value
+            value,
         }
     }
 }
@@ -272,12 +278,16 @@ impl Default for Trainer {
     }
 }
 
-extern {
+extern "C" {
     fn vsnprintf(buf: *mut c_char, size: c_uint, fmt: *const c_char, va_list: *mut c_void);
 }
 
-extern "C" fn logging_callback(user: *mut c_void, format: *const c_char, args: *mut __va_list_tag) -> c_int {
-    let trainer: &Trainer = unsafe{ mem::transmute(user) };
+extern "C" fn logging_callback(
+    user: *mut c_void,
+    format: *const c_char,
+    args: *mut __va_list_tag,
+) -> c_int {
+    let trainer: &Trainer = unsafe { mem::transmute(user) };
     if !trainer.verbose {
         return 0;
     }
@@ -313,17 +323,27 @@ impl Trainer {
         unsafe {
             let interface = CString::new("dictionary").unwrap();
             if (*self.data).labels.is_null() {
-                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, &mut (*self.data).attrs as *mut *mut _ as *mut *mut _);
+                let ret = crfsuite_create_instance(
+                    interface.as_ptr() as *const _,
+                    &mut (*self.data).attrs as *mut *mut _ as *mut *mut _,
+                );
                 // ret is c bool
                 if ret == 0 {
-                    return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for attributes.".to_string()));
+                    return Err(CrfError::CreateInstanceError(
+                        "Failed to create a dictionary instance for attributes.".to_string(),
+                    ));
                 }
             }
             if (*self.data).labels.is_null() {
-                let ret = crfsuite_create_instance(interface.as_ptr() as *const _, &mut (*self.data).labels as *mut *mut _ as *mut *mut _);
+                let ret = crfsuite_create_instance(
+                    interface.as_ptr() as *const _,
+                    &mut (*self.data).labels as *mut *mut _ as *mut *mut _,
+                );
                 // ret is c bool
                 if ret == 0 {
-                    return Err(CrfError::CreateInstanceError("Failed to create a dictionary instance for labels.".to_string()));
+                    return Err(CrfError::CreateInstanceError(
+                        "Failed to create a dictionary instance for labels.".to_string(),
+                    ));
                 }
             }
         }
@@ -338,11 +358,17 @@ impl Trainer {
         }
         unsafe {
             if !(*self.data).attrs.is_null() {
-                (*(*self.data).attrs).release.map(|release| release((*self.data).attrs)).unwrap();
+                (*(*self.data).attrs)
+                    .release
+                    .map(|release| release((*self.data).attrs))
+                    .unwrap();
                 (*self.data).attrs = ptr::null_mut();
             }
             if !(*self.data).labels.is_null() {
-                (*(*self.data).labels).release.map(|release| release((*self.data).labels)).unwrap();
+                (*(*self.data).labels)
+                    .release
+                    .map(|release| release((*self.data).labels))
+                    .unwrap();
                 (*self.data).labels = ptr::null_mut();
             }
             crfsuite_data_finish(self.data);
@@ -374,23 +400,31 @@ impl Trainer {
                 instance.assume_init()
             };
             let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
-            let crf_labels = slice::from_raw_parts_mut(instance.labels, instance.num_items as usize);
+            let crf_labels =
+                slice::from_raw_parts_mut(instance.labels, instance.num_items as usize);
             for t in 0..xseq_len {
                 let items = &xseq[t];
                 let crf_item = &mut crf_items[t];
                 // Set the attributes in the item
                 crfsuite_item_init_n(crf_item, items.len() as i32);
-                let contents = slice::from_raw_parts_mut(crf_item.contents, crf_item.num_contents as usize);
+                let contents =
+                    slice::from_raw_parts_mut(crf_item.contents, crf_item.num_contents as usize);
                 for (content, item) in contents.iter_mut().zip(items) {
                     let name_cstr = CString::new(&item.name[..]).unwrap();
-                    let aid = (*(*self.data).attrs).get.map(|f| f((*self.data).attrs, name_cstr.as_ptr())).unwrap();
+                    let aid = (*(*self.data).attrs)
+                        .get
+                        .map(|f| f((*self.data).attrs, name_cstr.as_ptr()))
+                        .unwrap();
                     (*content).aid = aid;
                     (*content).value = item.value;
                 }
                 // Set the label of the item
                 let y_value = yseq[t].as_ref();
                 let y_cstr = CString::new(y_value).unwrap();
-                let label = (*(*self.data).labels).get.map(|f| f((*self.data).labels, y_cstr.as_ptr())).unwrap();
+                let label = (*(*self.data).labels)
+                    .get
+                    .map(|f| f((*self.data).labels, y_cstr.as_ptr()))
+                    .unwrap();
                 crf_labels[t] = label;
             }
             instance.group = group;
@@ -415,10 +449,15 @@ impl Trainer {
             tid.push_str("/");
             tid.push_str(&algorithm.to_string());
             let tid_cstr = CString::new(tid).unwrap();
-            let ret = crfsuite_create_instance(tid_cstr.as_ptr(), &mut self.trainer as *mut *mut _ as *mut *mut _);
+            let ret = crfsuite_create_instance(
+                tid_cstr.as_ptr(),
+                &mut self.trainer as *mut *mut _ as *mut *mut _,
+            );
             // ret is c bool
             if ret == 0 {
-                return Err(CrfError::CreateInstanceError("Failed to create a instance for trainer.".to_string()));
+                return Err(CrfError::CreateInstanceError(
+                    "Failed to create a instance for trainer.".to_string(),
+                ));
             }
         }
         Ok(())
@@ -446,7 +485,10 @@ impl Trainer {
                 return Err(CrfError::EmptyData);
             }
             let model_cstr = CString::new(model).unwrap();
-            let ret = (*self.trainer).train.map(|f| f(self.trainer, self.data, model_cstr.as_ptr(), holdout)).unwrap();
+            let ret = (*self.trainer)
+                .train
+                .map(|f| f(self.trainer, self.data, model_cstr.as_ptr(), holdout))
+                .unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
@@ -483,7 +525,12 @@ impl Trainer {
         let value_cstr = CString::new(value).unwrap();
         unsafe {
             let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
-            if (*pms).set.map(|f| f(pms, name_cstr.as_ptr(), value_cstr.as_ptr())).unwrap() != 0 {
+            if (*pms)
+                .set
+                .map(|f| f(pms, name_cstr.as_ptr(), value_cstr.as_ptr()))
+                .unwrap()
+                != 0
+            {
                 (*pms).release.map(|f| f(pms)).unwrap();
                 return Err(CrfError::ParamNotFound(name.to_string()));
             }
@@ -502,7 +549,12 @@ impl Trainer {
         unsafe {
             let mut value_ptr: *mut libc::c_char = ptr::null_mut();
             let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
-            if (*pms).get.map(|f| f(pms, name_cstr.as_ptr(), &mut value_ptr)).unwrap() != 0 {
+            if (*pms)
+                .get
+                .map(|f| f(pms, name_cstr.as_ptr(), &mut value_ptr))
+                .unwrap()
+                != 0
+            {
                 (*pms).release.map(|f| f(pms)).unwrap();
                 return Err(CrfError::ParamNotFound(name.to_string()));
             }
@@ -524,7 +576,12 @@ impl Trainer {
         unsafe {
             let mut value_ptr: *mut libc::c_char = ptr::null_mut();
             let pms = (*self.trainer).params.map(|f| f(self.trainer)).unwrap();
-            if (*pms).help.map(|f| f(pms, name_cstr.as_ptr(), ptr::null_mut(), &mut value_ptr)).unwrap() != 0 {
+            if (*pms)
+                .help
+                .map(|f| f(pms, name_cstr.as_ptr(), ptr::null_mut(), &mut value_ptr))
+                .unwrap()
+                != 0
+            {
                 (*pms).release.map(|f| f(pms)).unwrap();
                 return Err(CrfError::ParamNotFound(name.to_string()));
             }
@@ -585,7 +642,7 @@ impl Model {
         let mut file = File::open(name)
             .map_err(|err| CrfError::InvalidModel(format!("Failed to open model: {}", err)))?;
         Self::validate_model(&mut file)?;
-        drop(file);  // Close file
+        drop(file); // Close file
 
         let mut model = Model::new();
         model.open(name)?;
@@ -598,9 +655,15 @@ impl Model {
         Self::validate_model(&mut cdr)?;
         let mut instance = ptr::null_mut();
         unsafe {
-            let ret = crfsuite_create_instance_from_memory(bytes.as_ptr() as *const c_void, bytes.len(), &mut instance);
+            let ret = crfsuite_create_instance_from_memory(
+                bytes.as_ptr() as *const c_void,
+                bytes.len(),
+                &mut instance,
+            );
             if ret != 0 {
-                return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
+                return Err(CrfError::CreateInstanceError(
+                    "Failed to create a model instance.".to_string(),
+                ));
             }
         }
         let model: *mut crfsuite_sys::crfsuite_model_t = unsafe { mem::transmute(instance) };
@@ -613,18 +676,23 @@ impl Model {
     fn validate_model<R: Read + Seek>(reader: &mut R) -> Result<()> {
         // Check that file magic is correct
         let mut magic = [0; 4];
-        reader
-            .read_exact(&mut magic)
-            .map_err(|err| CrfError::InvalidModel(format!("Failed to read model file magic: {}", err)))?;
+        reader.read_exact(&mut magic).map_err(|err| {
+            CrfError::InvalidModel(format!("Failed to read model file magic: {}", err))
+        })?;
         if &magic != b"lCRF" {
-            return Err(CrfError::InvalidModel("Invalid model file magic".to_string()));
+            return Err(CrfError::InvalidModel(
+                "Invalid model file magic".to_string(),
+            ));
         }
         // Make sure crfsuite won't read past allocated memory in case of incomplete header
         let pos = reader
             .seek(SeekFrom::End(0))
             .map_err(|err| CrfError::InvalidModel(format!("Invalid model: {}", err)))?;
-        if pos <= 48 {  // header size
-            return Err(CrfError::InvalidModel("Invalid model file header".to_string()));
+        if pos <= 48 {
+            // header size
+            return Err(CrfError::InvalidModel(
+                "Invalid model file header".to_string(),
+            ));
         }
         Ok(())
     }
@@ -633,9 +701,14 @@ impl Model {
     fn open(&mut self, name: &str) -> Result<()> {
         let name_cstr = CString::new(name).unwrap();
         unsafe {
-            let ret = crfsuite_create_instance_from_file(name_cstr.as_ptr(), &mut self.0 as *mut *mut _ as *mut *mut _);
+            let ret = crfsuite_create_instance_from_file(
+                name_cstr.as_ptr(),
+                &mut self.0 as *mut *mut _ as *mut *mut _,
+            );
             if ret != 0 {
-                return Err(CrfError::CreateInstanceError("Failed to create a model instance.".to_string()));
+                return Err(CrfError::CreateInstanceError(
+                    "Failed to create a model instance.".to_string(),
+                ));
             }
         }
         Ok(())
@@ -653,13 +726,16 @@ impl Model {
     pub fn tagger(&self) -> Result<Tagger> {
         unsafe {
             let mut tagger = ptr::null_mut();
-            let ret = (*self.0).get_tagger.map(|f| f(self.0, &mut tagger)).unwrap();
+            let ret = (*self.0)
+                .get_tagger
+                .map(|f| f(self.0, &mut tagger))
+                .unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
             Ok(Tagger {
                 model: self,
-                tagger
+                tagger,
             })
         }
     }
@@ -710,7 +786,10 @@ impl Model {
 
     unsafe fn get_labels(&self) -> Result<*mut crfsuite_dictionary_t> {
         let mut labels: *mut crfsuite_dictionary_t = ptr::null_mut();
-        let ret = (*self.0).get_labels.map(|f| f(self.0, &mut labels)).unwrap();
+        let ret = (*self.0)
+            .get_labels
+            .map(|f| f(self.0, &mut labels))
+            .unwrap();
         if ret != 0 {
             return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
         }
@@ -729,7 +808,9 @@ unsafe impl Sync for Model {}
 
 impl<'a> Drop for Tagger<'a> {
     fn drop(&mut self) {
-        unsafe { (*self.tagger).release.map(|f| f(self.tagger)).unwrap(); }
+        unsafe {
+            (*self.tagger).release.map(|f| f(self.tagger)).unwrap();
+        }
     }
 }
 
@@ -742,7 +823,10 @@ impl<'a> Tagger<'a> {
             let mut lseq = Vec::with_capacity(length as usize);
             for i in 0..length {
                 let mut label: *mut libc::c_char = ptr::null_mut();
-                let ret = (*labels).to_string.map(|f| f(labels, i, &mut label as *mut *mut _ as *mut *const _)).unwrap();
+                let ret = (*labels)
+                    .to_string
+                    .map(|f| f(labels, i, &mut label as *mut *mut _ as *mut *const _))
+                    .unwrap();
                 if ret != 0 {
                     (*labels).release.map(|f| f(labels)).unwrap();
                     return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -779,7 +863,10 @@ impl<'a> Tagger<'a> {
                 crfsuite_item_init(crf_item);
                 for attr in items.iter() {
                     let name_cstr = CString::new(&attr.name[..]).unwrap();
-                    let aid = (*attrs).to_id.map(|f| f(attrs, name_cstr.as_ptr())).unwrap();
+                    let aid = (*attrs)
+                        .to_id
+                        .map(|f| f(attrs, name_cstr.as_ptr()))
+                        .unwrap();
                     if aid >= 0 {
                         let mut cont = mem::MaybeUninit::<crfsuite_attribute_t>::uninit();
                         let cont = {
@@ -792,7 +879,10 @@ impl<'a> Tagger<'a> {
             }
 
             // Set the instance to the tagger
-            let ret = (*self.tagger).set.map(|f| f(self.tagger, &mut instance)).unwrap();
+            let ret = (*self.tagger)
+                .set
+                .map(|f| f(self.tagger, &mut instance))
+                .unwrap();
             if ret != 0 {
                 (*attrs).release.map(|f| f(attrs)).unwrap();
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -815,7 +905,10 @@ impl<'a> Tagger<'a> {
             // Run the Viterbi algorithm
             let mut score: floatval_t = 0.0;
             let mut paths: Vec<libc::c_int> = Vec::with_capacity(length as usize);
-            let ret = (*self.tagger).viterbi.map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score)).unwrap();
+            let ret = (*self.tagger)
+                .viterbi
+                .map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score))
+                .unwrap();
             if ret != 0 {
                 (*labels).release.map(|f| f(labels)).unwrap();
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -825,7 +918,10 @@ impl<'a> Tagger<'a> {
             // Convert the Viterbi path to a label sequence
             for path in paths {
                 let mut label: *mut libc::c_char = ptr::null_mut();
-                let ret = (*labels).to_string.map(|f| f(labels, path, &mut label as *mut *mut _ as *mut *const _)).unwrap();
+                let ret = (*labels)
+                    .to_string
+                    .map(|f| f(labels, path, &mut label as *mut *mut _ as *mut *const _))
+                    .unwrap();
                 if ret != 0 {
                     (*labels).release.map(|f| f(labels)).unwrap();
                     return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -849,7 +945,11 @@ impl<'a> Tagger<'a> {
             }
             // Make sure |y| == |x|
             if length != yseq.len() {
-                return Err(CrfError::InvalidArgument(format!("The numbers of items and labels differ: |x| = {}, |y| = {}", length, yseq.len())));
+                return Err(CrfError::InvalidArgument(format!(
+                    "The numbers of items and labels differ: |x| = {}, |y| = {}",
+                    length,
+                    yseq.len()
+                )));
             }
             // Obtain the dictionary interface representing the labels in the model.
             let labels = self.model.get_labels()?;
@@ -860,19 +960,28 @@ impl<'a> Tagger<'a> {
                 let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
                 if l < 0 {
                     (*labels).release.map(|f| f(labels)).unwrap();
-                    return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", y.as_ref())));
+                    return Err(CrfError::ValueError(format!(
+                        "Failed to convert into label identifier: {}",
+                        y.as_ref()
+                    )));
                 }
                 paths.push(l);
             }
             // Compute the score of the path.
-            let ret = (*self.tagger).score.map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score)).unwrap();
+            let ret = (*self.tagger)
+                .score
+                .map(|f| f(self.tagger, paths.as_mut_ptr(), &mut score))
+                .unwrap();
             if ret != 0 {
                 (*labels).release.map(|f| f(labels)).unwrap();
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
             }
             // Compute the partition factor.
             let mut lognorm: floatval_t = 0.0;
-            let ret = (*self.tagger).lognorm.map(|f| f(self.tagger, &mut lognorm)).unwrap();
+            let ret = (*self.tagger)
+                .lognorm
+                .map(|f| f(self.tagger, &mut lognorm))
+                .unwrap();
             (*labels).release.map(|f| f(labels)).unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -892,7 +1001,10 @@ impl<'a> Tagger<'a> {
             }
             // Make sure that 0 <= position < |x|.
             if position < 0 || length <= position as usize {
-                return Err(CrfError::InvalidArgument(format!("The position {} is out of range of {}", position, length)));
+                return Err(CrfError::InvalidArgument(format!(
+                    "The position {} is out of range of {}",
+                    position, length
+                )));
             }
             // Obtain the dictionary interface representing the labels in the model.
             let labels = self.model.get_labels()?;
@@ -901,10 +1013,16 @@ impl<'a> Tagger<'a> {
             let l = (*labels).to_id.map(|f| f(labels, y_cstr.as_ptr())).unwrap();
             if l < 0 {
                 (*labels).release.map(|f| f(labels)).unwrap();
-                return Err(CrfError::ValueError(format!("Failed to convert into label identifier: {}", label)));
+                return Err(CrfError::ValueError(format!(
+                    "Failed to convert into label identifier: {}",
+                    label
+                )));
             }
             // Compute the score of the path.
-            let ret = (*self.tagger).marginal_point.map(|f| f(self.tagger, l, position, &mut prob)).unwrap();
+            let ret = (*self.tagger)
+                .marginal_point
+                .map(|f| f(self.tagger, l, position, &mut prob))
+                .unwrap();
             (*labels).release.map(|f| f(labels)).unwrap();
             if ret != 0 {
                 return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
@@ -916,7 +1034,7 @@ impl<'a> Tagger<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Algorithm, GraphicalModel, Result, Attribute};
+    use super::{Algorithm, Attribute, GraphicalModel, Result};
 
     #[test]
     fn test_str_to_algorithm_enum() {

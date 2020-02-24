@@ -1,10 +1,10 @@
 extern crate backtrace;
 extern crate crfsuite;
 
-use std::{fmt, mem, ptr, slice, str};
 use std::boxed::Box;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
+use std::{fmt, mem, ptr, slice, str};
 
 #[macro_use]
 mod utils;
@@ -85,7 +85,9 @@ impl FfiStr {
 
 impl Drop for FfiStr {
     fn drop(&mut self) {
-        unsafe { self.free(); }
+        unsafe {
+            self.free();
+        }
     }
 }
 
@@ -155,8 +157,8 @@ pub unsafe extern "C" fn pycrfsuite_err_get_last_code() -> CrfErrorCode {
 /// that needs to be freed with `pycrfsuite_str_free`.
 #[no_mangle]
 pub unsafe extern "C" fn pycrfsuite_err_get_last_message() -> FfiStr {
-    use std::fmt::Write;
     use std::error::Error;
+    use std::fmt::Write;
 
     LAST_ERROR.with(|e| {
         if let Some(ref err) = *e.borrow() {

@@ -15,9 +15,7 @@ fn fail_on_empty_directory(name: &str) {
 }
 
 fn build_crfsuite() {
-    let dst = cmake::Config::new("")
-        .build_target("crfsuite")
-        .build();
+    let dst = cmake::Config::new("").build_target("crfsuite").build();
     println!("cargo:rustc-link-search=native={}/build", dst.display());
     println!("cargo:rustc-link-lib=static=cqdb");
     println!("cargo:rustc-link-lib=static=lbfgs");

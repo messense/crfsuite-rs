@@ -1,7 +1,7 @@
+use std::cell::RefCell;
 use std::mem;
 use std::panic;
 use std::thread;
-use std::cell::RefCell;
 
 use backtrace::Backtrace;
 
@@ -11,7 +11,6 @@ thread_local! {
     pub static LAST_ERROR: RefCell<Option<ErrorKind>> = RefCell::new(None);
     pub static LAST_BACKTRACE: RefCell<Option<(Option<String>, Backtrace)>> = RefCell::new(None);
 }
-
 
 fn notify_err(err: ErrorKind) {
     LAST_ERROR.with(|e| {
@@ -27,23 +26,21 @@ pub unsafe fn set_panic_hook() {
 
         let msg = match info.payload().downcast_ref::<&str>() {
             Some(s) => *s,
-            None => {
-                match info.payload().downcast_ref::<String>() {
-                    Some(s) => &**s,
-                    None => "Box<Any>",
-                }
-            }
+            None => match info.payload().downcast_ref::<String>() {
+                Some(s) => &**s,
+                None => "Box<Any>",
+            },
         };
 
         let panic_info = match info.location() {
-            Some(location) => {
-                format!("thread '{}' panicked with '{}' at {}:{}",
-                                     thread, msg, location.file(),
-                                     location.line())
-            }
-            None => {
-                format!("thread '{}' panicked with '{}'", thread, msg)
-            }
+            Some(location) => format!(
+                "thread '{}' panicked with '{}' at {}:{}",
+                thread,
+                msg,
+                location.file(),
+                location.line()
+            ),
+            None => format!("thread '{}' panicked with '{}'", thread, msg),
         };
 
         LAST_BACKTRACE.with(|e| {
@@ -52,9 +49,7 @@ pub unsafe fn set_panic_hook() {
     }));
 }
 
-pub unsafe fn landingpad<F: FnOnce() -> Result<T> + panic::UnwindSafe, T>(
-    f: F) -> T
-{
+pub unsafe fn landingpad<F: FnOnce() -> Result<T> + panic::UnwindSafe, T>(f: F) -> T {
     match panic::catch_unwind(f) {
         Ok(rv) => rv.map_err(|err| notify_err(err)).unwrap_or(mem::zeroed()),
         Err(err) => {
@@ -62,12 +57,10 @@ pub unsafe fn landingpad<F: FnOnce() -> Result<T> + panic::UnwindSafe, T>(
             let err = &*err as &dyn Any;
             let msg = match err.downcast_ref::<&str>() {
                 Some(s) => *s,
-                None => {
-                    match err.downcast_ref::<String>() {
-                        Some(s) => &**s,
-                        None => "Box<Any>",
-                    }
-                }
+                None => match err.downcast_ref::<String>() {
+                    Some(s) => &**s,
+                    None => "Box<Any>",
+                },
             };
             notify_err(ErrorKind::Panic(msg.to_string()));
             mem::zeroed()

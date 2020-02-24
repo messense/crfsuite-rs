@@ -1,6 +1,6 @@
 extern crate crfsuite;
 
-use crfsuite::{Model, Attribute, CrfError};
+use crfsuite::{Attribute, CrfError, Model};
 
 #[test]
 fn test_open_model() {
@@ -13,7 +13,7 @@ fn test_open_model() {
 fn test_open_not_existing_model_does_not_panic() {
     let ret = Model::from_file("tests/does-not-exists.crfsuite");
     match ret {
-        Err(CrfError::InvalidModel(..)) => {},
+        Err(CrfError::InvalidModel(..)) => {}
         _ => panic!("test fail"),
     }
 }
@@ -40,7 +40,9 @@ fn test_create_model_from_memory() {
         vec![],
         vec![Attribute::new("clean", 1.0)],
     ];
-    let yseq = ["sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy"];
+    let yseq = [
+        "sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy",
+    ];
     let res = tagger.tag(&xseq).unwrap();
     assert_eq!(res, yseq);
 
@@ -52,25 +54,25 @@ fn test_create_model_from_memory() {
 fn test_create_model_from_memory_invalid_model() {
     let ret = Model::from_memory(b"");
     match ret {
-        Err(CrfError::InvalidModel(..)) => {},
+        Err(CrfError::InvalidModel(..)) => {}
         _ => panic!("test fail"),
     }
 
     let ret = Model::from_memory(b"abcdefg");
     match ret {
-        Err(CrfError::InvalidModel(..)) => {},
+        Err(CrfError::InvalidModel(..)) => {}
         _ => panic!("test fail"),
     }
 
     let ret = Model::from_memory(b"lCRF");
     match ret {
-        Err(CrfError::InvalidModel(..)) => {},
+        Err(CrfError::InvalidModel(..)) => {}
         _ => panic!("test fail"),
     }
 
     let ret = Model::from_memory(b"lCRFabcdefg");
     match ret {
-        Err(CrfError::InvalidModel(..)) => {},
+        Err(CrfError::InvalidModel(..)) => {}
         _ => panic!("test fail"),
     }
 }
@@ -90,7 +92,9 @@ fn test_tag() {
         vec![],
         vec![Attribute::new("clean", 1.0)],
     ];
-    let yseq = ["sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy"];
+    let yseq = [
+        "sunny", "sunny", "sunny", "rainy", "rainy", "rainy", "sunny", "sunny", "rainy",
+    ];
     let res = tagger.tag(&xseq).unwrap();
     assert_eq!(res, yseq);
 
