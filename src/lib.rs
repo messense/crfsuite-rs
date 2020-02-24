@@ -282,8 +282,11 @@ extern "C" fn logging_callback(user: *mut c_void, format: *const c_char, args: *
         return 0;
     }
     unsafe {
-        let mut buf = mem::uninitialized::<[c_char; 65535]>();
-        vsnprintf(buf.as_mut_ptr(), 65534, format, mem::transmute(args));
+        let mut buf = mem::MaybeUninit::<[c_char; 65535]>::uninit();
+        let buf = {
+            vsnprintf(buf.as_mut_ptr() as _, 65534, format, mem::transmute(args));
+            buf.assume_init()
+        };
         let message = CStr::from_ptr(buf.as_ptr()).to_str().unwrap();
         print!("{}", message);
     }
@@ -365,8 +368,11 @@ impl Trainer {
             }
             let xseq_len = xseq.len();
             assert_eq!(xseq_len, yseq.len());
-            let mut instance: crfsuite_instance_t = mem::uninitialized();
-            crfsuite_instance_init_n(&mut instance, xseq_len as i32);
+            let mut instance = mem::MaybeUninit::<crfsuite_instance_t>::uninit();
+            let mut instance = {
+                crfsuite_instance_init_n(instance.as_mut_ptr(), xseq_len as i32);
+                instance.assume_init()
+            };
             let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
             let crf_labels = slice::from_raw_parts_mut(instance.labels, instance.num_items as usize);
             for t in 0..xseq_len {
@@ -758,10 +764,13 @@ impl<'a> Tagger<'a> {
     /// Set an item sequence.
     fn set(&mut self, xseq: &[Item]) -> Result<()> {
         unsafe {
-            let mut instance: crfsuite_instance_t = mem::uninitialized();
             let attrs = self.model.get_attrs()?;
             let xseq_len = xseq.len();
-            crfsuite_instance_init_n(&mut instance, xseq_len as i32);
+            let mut instance = mem::MaybeUninit::<crfsuite_instance_t>::uninit();
+            let mut instance = {
+                crfsuite_instance_init_n(instance.as_mut_ptr(), xseq_len as i32);
+                instance.assume_init()
+            };
             let crf_items = slice::from_raw_parts_mut(instance.items, instance.num_items as usize);
             for t in 0..xseq_len {
                 let items = &xseq[t];
@@ -772,8 +781,11 @@ impl<'a> Tagger<'a> {
                     let name_cstr = CString::new(&attr.name[..]).unwrap();
                     let aid = (*attrs).to_id.map(|f| f(attrs, name_cstr.as_ptr())).unwrap();
                     if aid >= 0 {
-                        let mut cont: crfsuite_attribute_t = mem::uninitialized();
-                        crfsuite_attribute_set(&mut cont, aid, attr.value);
+                        let mut cont = mem::MaybeUninit::<crfsuite_attribute_t>::uninit();
+                        let cont = {
+                            crfsuite_attribute_set(cont.as_mut_ptr(), aid, attr.value);
+                            cont.assume_init()
+                        };
                         crfsuite_item_append_attribute(crf_item, &cont);
                     }
                 }
