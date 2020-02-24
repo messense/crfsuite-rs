@@ -16,7 +16,7 @@ def build_native(spec):
     spec.add_cffi_module(
         module_path='crfsuite._native',
         dylib=lambda: build.find_dylib('pycrfsuite', in_path='target/release'),
-        header_filename=lambda: build.find_header('pycrfsuite.h', in_path='include'),
+        header_filename=lambda: build.find_header('pycrfsuite.h', in_path='cabi/include'),
         rtld_flags=['NOW', 'NODELETE']
     )
 
