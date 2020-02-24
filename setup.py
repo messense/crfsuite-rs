@@ -9,8 +9,8 @@ with open('README.md', 'rb') as f:
 def build_native(spec):
     # build an example rust library
     build = spec.add_external_build(
-        cmd=['cargo', 'build', '--release'],
-        path='./cabi'
+        cmd=['cargo', 'build', '-p', 'crfsuite-cabi', '--release'],
+        path='.'
     )
 
     spec.add_cffi_module(
