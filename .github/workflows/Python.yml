@@ -30,8 +30,8 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: Build manylinux1 wheels
         run: |
-            docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 sh manylinux.sh
-            docker run --rm -it -v `pwd`:/io -w /io quay.io/pypa/manylinux1_i686 sh manylinux.sh
+            docker run --rm -v `pwd`:/io -w /io quay.io/pypa/manylinux1_x86_64 sh manylinux.sh
+            docker run --rm -v `pwd`:/io -w /io quay.io/pypa/manylinux1_i686 sh manylinux.sh
             ls -lrth dist/
       - name: Publish package
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
