@@ -9,14 +9,14 @@ with open('README.md', 'rb') as f:
 def build_native(spec):
     # build an example rust library
     build = spec.add_external_build(
-        cmd=['cargo', 'build', '--release'],
-        path='./cabi'
+        cmd=['cargo', 'build', '-p', 'crfsuite-cabi', '--release'],
+        path='.'
     )
 
     spec.add_cffi_module(
         module_path='crfsuite._native',
         dylib=lambda: build.find_dylib('pycrfsuite', in_path='target/release'),
-        header_filename=lambda: build.find_header('pycrfsuite.h', in_path='include'),
+        header_filename=lambda: build.find_header('pycrfsuite.h', in_path='cabi/include'),
         rtld_flags=['NOW', 'NODELETE']
     )
 
