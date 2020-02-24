@@ -38,7 +38,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
             pip install wheel
-            python setup.py bdist_wheel
+            python setup.py sdist bdist_wheel
             ls -lrth dist/
       - name: Publish package
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
