@@ -4,7 +4,7 @@ extern crate crfsuite;
 use std::boxed::Box;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
-use std::{fmt, mem, ptr, slice, str};
+use std::{fmt, mem, ptr, slice};
 
 #[macro_use]
 mod utils;
@@ -19,14 +19,7 @@ pub enum ErrorKind {
 
 pub type Result<T> = ::std::result::Result<T, ErrorKind>;
 
-impl ::std::error::Error for ErrorKind {
-    fn description(&self) -> &str {
-        match *self {
-            ErrorKind::Panic(_) => "panic",
-            ErrorKind::CrfError(ref err) => err.description(),
-        }
-    }
-}
+impl ::std::error::Error for ErrorKind {}
 
 impl fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

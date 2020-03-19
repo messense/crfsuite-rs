@@ -35,19 +35,7 @@ pub enum CrfSuiteError {
     Unknown,
 }
 
-impl error::Error for CrfSuiteError {
-    fn description(&self) -> &str {
-        match *self {
-            CrfSuiteError::Incompatible => "Incompatible data",
-            CrfSuiteError::InternalLogic => "Internal error",
-            CrfSuiteError::NotImplemented => "Not implemented",
-            CrfSuiteError::NotSupported => "Unsupported operation",
-            CrfSuiteError::OutOfMemory => "Insufficient memory",
-            CrfSuiteError::Overflow => "Overflow",
-            CrfSuiteError::Unknown => "Unknown error occurred",
-        }
-    }
-}
+impl error::Error for CrfSuiteError {}
 
 impl fmt::Display for CrfSuiteError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -99,20 +87,7 @@ pub enum CrfError {
     InvalidModel(String),
 }
 
-impl error::Error for CrfError {
-    fn description(&self) -> &str {
-        match *self {
-            CrfError::CrfSuiteError(ref err) => err.description(),
-            CrfError::CreateInstanceError(ref err) => err,
-            CrfError::ParamNotFound(_) => "Parameter not found",
-            CrfError::AlgorithmNotSelected => "Trainer algorithm not selected",
-            CrfError::EmptyData => "Trainer data is empty",
-            CrfError::InvalidArgument(_) => "Invalid argument",
-            CrfError::ValueError(_) => "Invalid value",
-            CrfError::InvalidModel(_) => "Invalid model",
-        }
-    }
-}
+impl error::Error for CrfError {}
 
 impl fmt::Display for CrfError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
