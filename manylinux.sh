@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e -x
 
-ln -s `which cmake28` /usr/bin/cmake
 # Install dependencies needed by our wheel
 yum -y install gcc libffi-devel
 
