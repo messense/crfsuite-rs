@@ -2,9 +2,6 @@
 #![allow(clippy::useless_transmute)]
 #![allow(clippy::transmute_ptr_to_ref)]
 #![allow(clippy::transmute_ptr_to_ptr)]
-extern crate crfsuite_sys;
-extern crate libc;
-
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::{Cursor, Read, Seek, SeekFrom};

@@ -9,6 +9,7 @@ categories = ["external-ffi-bindings"]
 keywords = ["crf", "crfsuite"]
 build = "build.rs"
 links = "crfsuite"
+edition = "2018"
 
 [dependencies]
 libc = "0.2"

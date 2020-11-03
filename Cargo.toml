@@ -7,6 +7,7 @@ license = "MIT"
 repository = "https://github.com/bosondata/crfsuite-rs"
 keywords = ["crf", "crfsuite"]
 readme = "README.md"
+edition = "2018"
 exclude = [
     "cabi/*"
 ]
