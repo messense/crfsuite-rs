@@ -7,11 +7,15 @@ use std::fs::File;
 use std::io::{Cursor, Read, Seek, SeekFrom};
 #[cfg(unix)]
 use std::os::unix::io::{IntoRawFd, RawFd};
+#[cfg(windows)]
+use std::os::windows::io::{IntoRawHandle, RawHandle};
 use std::path::Path;
 use std::{error, fmt, mem, ptr, slice};
 
 use crfsuite_sys::*;
-use libc::{c_char, c_int, c_uint, c_void, fclose, fdopen};
+#[cfg(not(windows))]
+use libc::{c_char, c_int, c_uint};
+use libc::{c_void, fclose, fdopen};
 
 /// Errors from crfsuite ffi functions
 #[derive(Debug, Clone, PartialEq)]
@@ -250,10 +254,12 @@ impl Default for Trainer {
     }
 }
 
+#[cfg(not(windows))]
 extern "C" {
     fn vsnprintf(buf: *mut c_char, size: c_uint, fmt: *const c_char, va_list: *mut c_void);
 }
 
+#[cfg(not(windows))]
 extern "C" fn logging_callback(
     user: *mut c_void,
     format: *const c_char,
@@ -319,7 +325,10 @@ impl Trainer {
                 }
             }
         }
-        self.set_message_callback();
+        #[cfg(not(windows))]
+        {
+            self.set_message_callback();
+        }
         Ok(())
     }
 
@@ -565,6 +574,7 @@ impl Trainer {
         Ok(value)
     }
 
+    #[cfg(not(windows))]
     /// Set the callback function and user-defined data
     // XXX: make it a public API?
     fn set_message_callback(&mut self) {
@@ -737,6 +747,33 @@ impl Model {
         Ok(())
     }
 
+    #[cfg(windows)]
+    /// Print the model in human-readable format
+    ///
+    /// ## Parameters
+    ///
+    /// `file`: Something convertable to file descriptor
+    ///
+    pub fn dump(&self, fd: RawHandle) -> Result<()> {
+        unsafe {
+            let fd = libc::open_osfhandle(fd as _, libc::O_RDWR);
+            if fd == -1 {
+                panic!("open_osfhandle failed");
+            }
+            let c_mode = CString::new("w").unwrap();
+            let file = fdopen(fd, c_mode.as_ptr());
+            if file.is_null() {
+                panic!("fdopen failed");
+            }
+            let ret = (*self.0).dump.map(|f| f(self.0, file)).unwrap();
+            if ret != 0 {
+                return Err(CrfError::CrfSuiteError(CrfSuiteError::from(ret)));
+            }
+            fclose(file);
+        }
+        Ok(())
+    }
+
     #[cfg(unix)]
     /// Print the model in human-readable format to file
     ///
@@ -747,6 +784,18 @@ impl Model {
     pub fn dump_file<T: AsRef<Path>>(&self, path: T) -> Result<()> {
         let file = File::create(path).expect("create file failed");
         self.dump(file.into_raw_fd())
+    }
+
+    #[cfg(windows)]
+    /// Print the model in human-readable format to file
+    ///
+    /// ## Parameters
+    ///
+    /// `path`: Dump file path
+    ///
+    pub fn dump_file<T: AsRef<Path>>(&self, path: T) -> Result<()> {
+        let file = File::create(path).expect("create file failed");
+        self.dump(file.into_raw_handle())
     }
 
     unsafe fn get_attrs(&self) -> Result<*mut crfsuite_dictionary_t> {
