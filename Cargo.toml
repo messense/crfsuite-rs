@@ -14,7 +14,7 @@ exclude = [
 
 [dependencies]
 libc = "0.2"
-crfsuite-sys = { path = "crfsuite-sys", version = "0.1" }
+crfsuite-sys = { path = "crfsuite-sys", version = "0.2" }
 
 [badges]
 travis-ci = { repository = "bosondata/crfsuite-rs" }
