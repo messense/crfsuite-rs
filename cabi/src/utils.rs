@@ -5,7 +5,7 @@ use std::thread;
 
 use backtrace::Backtrace;
 
-use {ErrorKind, Result};
+use crate::{ErrorKind, Result};
 
 thread_local! {
     pub static LAST_ERROR: RefCell<Option<ErrorKind>> = RefCell::new(None);

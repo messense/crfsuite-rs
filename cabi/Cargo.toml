@@ -3,10 +3,14 @@ name = "crfsuite-cabi"
 version = "0.2.8"
 authors = ["Messense Lv <messense@icloud.com>"]
 publish = false
+edition = "2018"
 
 [dependencies]
 backtrace = "0.3.5"
 crfsuite = { path = "..", version = "0.2" }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+libc = "0.2"
 
 [lib]
 name = "pycrfsuite"

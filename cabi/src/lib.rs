@@ -1,6 +1,3 @@
-extern crate backtrace;
-extern crate crfsuite;
-
 use std::boxed::Box;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
@@ -188,10 +185,20 @@ ffi_fn! {
     }
 }
 
+#[cfg(unix)]
 ffi_fn! {
     unsafe fn pycrfsuite_model_dump(m: *mut Model, fd: c_int) -> Result<()> {
         let model = m as *mut crfsuite::Model;
         Ok((*model).dump(fd)?)
+    }
+}
+
+#[cfg(windows)]
+ffi_fn! {
+    unsafe fn pycrfsuite_model_dump(m: *mut Model, fd: c_int) -> Result<()> {
+        let model = m as *mut crfsuite::Model;
+        let handle = libc::get_osfhandle(fd);
+        Ok((*model).dump(handle as _)?)
     }
 }
 

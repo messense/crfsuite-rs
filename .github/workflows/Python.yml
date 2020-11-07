@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.7]
+        python-version: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Checkout submodules
@@ -34,14 +34,15 @@ jobs:
             docker run --rm -v `pwd`:/io -w /io quay.io/pypa/manylinux2010_x86_64 sh manylinux.sh
             docker run --rm -v `pwd`:/io -w /io quay.io/pypa/manylinux2010_i686 sh manylinux.sh
             ls -lrth dist/
-      - name: Build macOS wheels
-        if: matrix.os == 'macos-latest'
+      - name: Build Non-Linux wheels
+        if: matrix.os != 'ubuntu-latest'
+        shell: bash
         run: |
             pip install wheel
             python setup.py sdist bdist_wheel
             ls -lrth dist/
-      - name: Publish macOS package
-        if: matrix.os == 'macos-latest' && github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      - name: Publish Non-Linux package
+        if: matrix.os != 'ubuntu-latest' && github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         run: |
             pip install twine
             TWINE_USERNAME=__token__ TWINE_PASSWORD=${{ secrets.pypi_password }} twine upload --skip-existing dist/*
