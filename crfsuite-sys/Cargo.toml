@@ -13,10 +13,8 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2"
+liblbfgs-sys = "0.1.0"
 
 [build-dependencies]
 cc = "1.0"
 cmake = "0.1"
-
-[badges]
-travis-ci = { repository = "bosondata/crfsuite-rs" }

@@ -1,4 +1,3 @@
-use std::env;
 use std::fs;
 
 fn fail_on_empty_directory(name: &str) {
@@ -13,36 +12,14 @@ fn fail_on_empty_directory(name: &str) {
 }
 
 fn build_crfsuite() {
-    let dst = cmake::Config::new("").build_target("crfsuite").build();
-    if cfg!(target_os = "windows") {
-        let profile = match &*env::var("PROFILE").unwrap_or_else(|_| "debug".to_owned()) {
-            "bench" | "release" => "Release",
-            _ => "Debug",
-        };
-        println!(
-            "cargo:rustc-link-search=native={}/build/{}",
-            dst.display(),
-            profile
-        );
-        println!(
-            "cargo:rustc-link-search=native={}/build/liblbfgs/{}",
-            dst.display(),
-            profile
-        );
-    } else {
-        println!("cargo:rustc-link-search=native={}/build", dst.display());
-        println!(
-            "cargo:rustc-link-search=native={}/build/liblbfgs",
-            dst.display()
-        );
-    }
+    let dst = cmake::Config::new("").register_dep("lbfgs").build();
+    println!("cargo:rustc-link-search=native={}/lib", dst.display());
     println!("cargo:rustc-link-lib=static=cqdb");
     println!("cargo:rustc-link-lib=static=lbfgs");
     println!("cargo:rustc-link-lib=static=crfsuite");
 }
 
 fn main() {
-    fail_on_empty_directory("liblbfgs");
     fail_on_empty_directory("crfsuite");
     build_crfsuite();
 }

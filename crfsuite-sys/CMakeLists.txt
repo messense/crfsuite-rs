@@ -16,20 +16,20 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 endif()
 
+find_package(liblbfgs REQUIRED)
+include_directories(${liblbfgs_INCLUDE_DIR})
+
 set(CQDB_SOURCES
     ${PROJECT_SOURCE_DIR}/crfsuite/lib/cqdb/src/lookup3.c
     ${PROJECT_SOURCE_DIR}/crfsuite/lib/cqdb/src/cqdb.c)
 add_library(cqdb STATIC ${CQDB_SOURCES})
-
-set(LBFGS_USE_SSE ON)
-set(LBFGS_lib_TARGET_NAME lbfgs)
-add_subdirectory(${PROJECT_SOURCE_DIR}/liblbfgs)
-set_target_properties(lbfgs PROPERTIES DEBUG_POSTFIX "")
+install(TARGETS cqdb ARCHIVE DESTINATION lib)
 
 FILE (GLOB
       SOURCES
       ${PROJECT_SOURCE_DIR}/crfsuite/lib/crf/src/*.c)
 
 add_library(crfsuite STATIC ${SOURCES})
-target_link_libraries(crfsuite cqdb lbfgs m)
+target_link_libraries(crfsuite cqdb ${liblbfgs_LIBRARIES} m)
+install(TARGETS crfsuite ARCHIVE DESTINATION lib)
 export(PACKAGE crfsuite)
