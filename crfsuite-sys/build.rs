@@ -24,8 +24,17 @@ fn build_crfsuite() {
             dst.display(),
             profile
         );
+        println!(
+            "cargo:rustc-link-search=native={}/build/liblbfgs/{}",
+            dst.display(),
+            profile
+        );
     } else {
         println!("cargo:rustc-link-search=native={}/build", dst.display());
+        println!(
+            "cargo:rustc-link-search=native={}/build/liblbfgs",
+            dst.display()
+        );
     }
     println!("cargo:rustc-link-lib=static=cqdb");
     println!("cargo:rustc-link-lib=static=lbfgs");
