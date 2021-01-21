@@ -26,6 +26,17 @@ FILE (GLOB
       ${PROJECT_SOURCE_DIR}/crfsuite/lib/crf/src/*.c)
 
 add_library(crfsuite STATIC ${SOURCES})
+set_target_properties(crfsuite PROPERTIES PUBLIC_HEADER "crfsuite/include/crfsuite.h;crfsuite/include/crfsuite.hpp;crfsuite/include/crfsuite_api.hpp")
 target_link_libraries(crfsuite ${cqdb_LIBRARIES} ${liblbfgs_LIBRARIES} m)
-install(TARGETS crfsuite ARCHIVE DESTINATION lib)
+install(TARGETS crfsuite ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION include)
 export(PACKAGE crfsuite)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+	"${PROJECT_SOURCE_DIR}/Config.cmake.in"
+	"${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+	INSTALL_DESTINATION "lib/crfsuite/cmake"
+	NO_SET_AND_CHECK_MACRO
+	NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" DESTINATION "lib/crfsuite/cmake" COMPONENT Development)

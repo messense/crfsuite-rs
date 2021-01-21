@@ -1,0 +1,7 @@
+## @PROJECT_NAME@ CMake configuration file
+
+# project include
+set(@PROJECT_NAME@_INCLUDE_DIR "@PROJECT_BINARY_DIR@/../include")
+
+# project libraries
+set(@PROJECT_NAME@_LIBRARIES crfsuite)

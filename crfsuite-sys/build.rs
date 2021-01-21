@@ -25,6 +25,8 @@ fn build_crfsuite() {
     println!("cargo:rustc-link-lib=static=cqdb");
     println!("cargo:rustc-link-lib=static=lbfgs");
     println!("cargo:rustc-link-lib=static=crfsuite");
+    println!("cargo:root={}", dst.to_str().unwrap());
+    println!("cargo:include={}/include", dst.to_str().unwrap());
 }
 
 fn main() {
