@@ -24,7 +24,7 @@ def build_native(spec):
 setup(
     name='crfsuite',
     version='0.3.1',
-    url='https://github.com/bosondata/crfsuite-rs',
+    url='https://github.com/messense/crfsuite-rs',
     description='Python binding for crfsuite',
     long_description=long_description,
     long_description_content_type='text/markdown',
