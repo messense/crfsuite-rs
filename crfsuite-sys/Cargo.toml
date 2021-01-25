@@ -10,6 +10,20 @@ keywords = ["crf", "crfsuite"]
 build = "build.rs"
 links = "crfsuite"
 edition = "2018"
+exclude = [
+    "crfsuite/ChangeLog",
+    "crfsuite/INSTALL",
+    "crfsuite/README",
+    "crfsuite/configure.in",
+    "crfsuite/crfsuite.sln",
+    "crfsuite/doc",
+    "crfsuite/example",
+    "crfsuite/bench",
+    "crfsuite/frontend",
+    "crfsuite/swig",
+    "crfsuite/win32",
+    "crfsuite/lib/cqdb"
+]
 
 [dependencies]
 libc = "0.2"
