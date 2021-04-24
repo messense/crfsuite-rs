@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Install Visual C++ for Python 2.7
         if: runner.os == 'Windows'
@@ -36,7 +36,7 @@ jobs:
             rustup show
           CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
           CIBW_ARCHS_LINUX: "auto aarch64"
-          CIBW_BUILD: cp38-*
+          CIBW_BUILD: cp39-*
 
       - uses: actions/upload-artifact@v2
         with:
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Build sdist
         run: python setup.py sdist
