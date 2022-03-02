@@ -27,7 +27,7 @@ exclude = [
 
 [dependencies]
 libc = "0.2"
-liblbfgs-sys = "0.1.0"
+liblbfgs-sys = "0.1.2"
 libcqdb = "0.3.0"
 
 [build-dependencies]

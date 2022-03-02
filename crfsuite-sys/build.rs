@@ -1,3 +1,4 @@
+use std::env;
 use std::fs;
 
 fn fail_on_empty_directory(name: &str) {
@@ -14,7 +15,8 @@ fn fail_on_empty_directory(name: &str) {
 fn build_crfsuite() {
     let mut cfg = cmake::Config::new("");
     cfg.register_dep("libcqdb").register_dep("lbfgs");
-    if cfg!(target_os = "macos") {
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
+    if target_os == "macos" {
         let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
         if target_arch == "x86_64" {
             cfg.define("CMAKE_OSX_ARCHITECTURES", "x86_64");
