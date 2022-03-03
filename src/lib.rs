@@ -245,6 +245,7 @@ impl ::std::str::FromStr for GraphicalModel {
 pub struct Trainer {
     data: *mut crfsuite_data_t,
     trainer: *mut crfsuite_trainer_t,
+    #[allow(dead_code)]
     verbose: bool,
 }
 
