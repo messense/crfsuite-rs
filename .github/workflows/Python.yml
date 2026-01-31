@@ -11,19 +11,12 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         python-version: [3.8]
     steps:
-      - uses: actions/checkout@v2
-      - name: Checkout submodules
-        shell: bash
-        run: |
-            auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-            git submodule sync --recursive
-            git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
         with:
-          profile: minimal
-          toolchain: stable
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Display Python version
@@ -48,8 +41,8 @@ jobs:
             TWINE_USERNAME=__token__ TWINE_PASSWORD=${{ secrets.pypi_password }} twine upload --skip-existing dist/*
       - name: Publish manylinux2010 package
         if: matrix.os == 'ubuntu-latest' && github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@v1.12.4
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}
-          skip_existing: true
+          skip-existing: true

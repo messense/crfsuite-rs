@@ -14,7 +14,9 @@ fn fail_on_empty_directory(name: &str) {
 
 fn build_crfsuite() {
     let mut cfg = cmake::Config::new("");
-    cfg.register_dep("libcqdb").register_dep("lbfgs");
+    cfg.define("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
+        .register_dep("libcqdb")
+        .register_dep("lbfgs");
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
     if target_os == "macos" {
         let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
