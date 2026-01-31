@@ -708,7 +708,7 @@ impl Model {
         }
     }
 
-    pub fn tagger(&self) -> Result<Tagger> {
+    pub fn tagger(&self) -> Result<Tagger<'_>> {
         unsafe {
             let mut tagger = ptr::null_mut();
             let ret = (*self.0)
